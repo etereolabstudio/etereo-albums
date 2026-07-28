@@ -3,66 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Etéreo - Recuerdos</title>
-    <!-- Preparando el terreno para cuando hagamos el diseño bonito -->
+    <title>Etéreo | Memoria Acústica</title>
+    <!-- Tus fuentes elegantes -->
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <!-- ==========================================
-         PANTALLA 1: VALIDACIÓN DEL PIN
+         PANTALLA 1: LOGIN (Con tu estilo de tarjeta)
          ========================================== -->
-    <div id="pantalla-login" style="text-align: center; margin-top: 50px;">
-        <!-- Si aún no subes el logo a GitHub, saldrá un ícono roto, es normal -->
-        <img src="logo-etereo.png" alt="Logo Etéreo" style="max-width: 150px; margin-bottom: 20px;">
+    <div class="card" id="pantalla-login">
+        <h1 class="brand-title">Etéreo</h1>
+        <p class="status-text">Ingresa tu clave de acceso para desbloquear esta memoria.</p>
         
-        <h2>Bienvenido a tu Álbum</h2>
-        <p>Por favor, ingresa el PIN de seguridad:</p>
+        <input type="password" id="input-pin" placeholder="PIN" class="pin-input">
+        <button id="btn-entrar" class="btn-primary">Desbloquear</button>
         
-        <input type="password" id="input-pin" placeholder="Ej. 123456" style="padding: 10px; font-size: 16px;">
-        <br><br>
-        <button id="btn-entrar" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Desbloquear</button>
-        
-        <p id="mensaje-error" style="display: none; color: red; font-weight: bold; margin-top: 15px;"></p>
+        <p id="mensaje-error" style="display: none; color: #d63031; font-size: 12px; margin-top: 15px;"></p>
     </div>
 
-
     <!-- ==========================================
-         PANTALLA 2: GRABACIÓN DE AUDIO (Oculta al inicio)
+         PANTALLA 2: REPRODUCTOR SOUNDWAVE / GRABADORA
          ========================================== -->
-    <div id="pantalla-grabacion" style="display: none; text-align: center; margin-top: 50px;">
-        <img src="logo-etereo.png" alt="Logo Etéreo" style="max-width: 100px; margin-bottom: 10px;">
+    <div class="card" id="pantalla-grabacion" style="display: none;">
+        <h1 class="brand-title">Etéreo</h1>
+        <h2 id="titulo-capitulo" class="chapter-title">Cargando...</h2>
+        <p class="status-text" id="status-text">Analizando señal acústica...</p>
         
-        <!-- Aquí se inyectará el nombre del capítulo desde Firebase -->
-        <h2 id="titulo-capitulo">Cargando capítulo...</h2>
-        
-        <p id="estado-grabacion" style="margin-bottom: 20px;">Presiona el botón para grabar tu mensaje.</p>
-        
-        <button id="btn-grabar" style="background-color: #e74c3c; color: white; padding: 12px 24px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
-            🎤 Grabar Mensaje
-        </button>
-        
-        <button id="btn-detener" style="display: none; background-color: #2c3e50; color: white; padding: 12px 24px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
-            ⏹️ Detener Grabación
-        </button>
-        
-        <br><br>
-        <!-- Reproductor de audio nativo -->
-        <audio id="reproductor" controls style="display: none; margin: 0 auto;"></audio>
+        <!-- Tu reproductor original[cite: 1] -->
+        <div class="waveform-wrapper" id="waveform-wrapper" style="display: none;">
+            <canvas id="canvas-base"></canvas>
+            <canvas id="canvas-progress"></canvas>
+            
+            <button class="play-btn" id="custom-play-btn">
+                <svg class="icon-play" id="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <svg class="icon-pause" id="icon-pause" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </button>
+        </div>
+
+        <!-- Botones de grabación (Se ocultan si ya hay audio) -->
+        <button id="btn-grabar" class="btn-primary" style="margin-top: 20px;">🎤 Grabar Memoria</button>
+        <button id="btn-detener" class="btn-secondary" style="display: none; margin-top: 20px;">⏹️ Detener</button>
+
+        <a href="https://etereomx.com" class="back-link">Descubre Etéreo Studio</a>
+        <audio id="native-audio"></audio>
     </div>
 
-
-    <!-- ==========================================
-         SCRIPTS: EL ORDEN AQUÍ ES VITAL
-         ========================================== -->
-    
-    <!-- 1. Primero cargamos Firebase desde los servidores de Google -->
+    <!-- Scripts de Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
-    <!-- 2. Hasta el final, cargamos TU código. 
-         ¡Asegúrate de que esta línea esté UNA SOLA VEZ en todo el archivo! -->
+    
+    <!-- Tu lógica principal -->
     <script src="app.js"></script>
-
 </body>
 </html>
