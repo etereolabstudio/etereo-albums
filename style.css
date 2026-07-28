@@ -1,1 +1,110 @@
 
+/* ==========================================
+   IMPORTAR TIPOGRAFÍA ELEGANTE (Google Fonts)
+   ========================================== */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap');
+
+/* ==========================================
+   ESTILOS GENERALES (Fondo y Texto)
+   ========================================== */
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: #f9f7f3; /* Un tono crema muy sutil, tipo papel */
+    color: #333333;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Ocupa toda la altura de la pantalla */
+}
+
+/* ==========================================
+   TARJETAS PRINCIPALES (Contenedores)
+   ========================================== */
+#pantalla-login, #pantalla-grabacion {
+    background-color: #ffffff;
+    width: 90%;
+    max-width: 400px;
+    padding: 40px 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); /* Sombra muy suave */
+    text-align: center;
+    box-sizing: border-box;
+}
+
+h2 {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+p {
+    color: #666666;
+    font-weight: 300;
+    font-size: 15px;
+    margin-bottom: 25px;
+}
+
+/* ==========================================
+   INPUT DEL PIN
+   ========================================== */
+input[type="password"] {
+    width: 100%;
+    padding: 15px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 20px;
+    text-align: center;
+    letter-spacing: 5px; /* Separa los números para que se vea elegante */
+    outline: none;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+}
+
+input[type="password"]:focus {
+    border-color: #2c3e50; /* Cambia de color al escribir */
+}
+
+/* ==========================================
+   BOTONES
+   ========================================== */
+button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s ease, background-color 0.3s ease;
+    margin-top: 15px;
+}
+
+button:active {
+    transform: scale(0.97); /* Efecto de "apachurrar" al tocar */
+}
+
+#btn-entrar {
+    background-color: #2c3e50; /* Azul oscuro elegante */
+    color: white;
+}
+
+#btn-grabar {
+    background-color: #d63031; /* Rojo suave para grabar */
+    color: white;
+}
+
+#btn-detener {
+    background-color: #2d3436;
+    color: white;
+}
+
+/* ==========================================
+   REPRODUCTOR DE AUDIO NATIVO
+   ========================================== */
+audio {
+    width: 100%;
+    margin-top: 20px;
+    outline: none;
+}
