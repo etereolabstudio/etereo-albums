@@ -1,6 +1,6 @@
 // 1. CONFIGURACIÓN DIRECTA DE FIREBASE
 const firebaseConfig = {
-    apiKey: "TU_CLAVE_API_AQUI", // Reemplaza con tu Clave de API web si la tienes
+    apiKey: "835280694390", // Reemplaza con tu Clave de API web si la tienes
     projectId: "etereo-album"    // <--- CAMBIO CLAVE: Este es tu ID real
 };
 
