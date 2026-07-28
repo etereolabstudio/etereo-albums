@@ -1,9 +1,6 @@
-// 1. CONFIGURACIÓN DE FIREBASE (Pega aquí los datos que te dio Google)
+// 1. CONFIGURACIÓN DIRECTA DE FIREBASE
 const firebaseConfig = {
-    apiKey: "TU_API_KEY",
-    authDomain: "tu-proyecto.firebaseapp.com",
-    projectId: "tu-proyecto",
-    // ... otros datos ...
+    projectId: "etereolabstudio" // Tu ID exacto de Firebase
 };
 
 // Inicializamos Firebase
@@ -14,17 +11,18 @@ const db = firebase.firestore();
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/etereomx/auto/upload";
 const UPLOAD_PRESET = "etereo_audios"; 
 
-// 3. LEER LA URL (Ej: /?id=ALB-001&cap=3)
+// 3. LEER LA URL (Ej: /?id=ALB-TEST&cap=1)
 const parametrosURL = new URLSearchParams(window.location.search);
 const idAlbum = parametrosURL.get('id');
 const numeroCapitulo = parametrosURL.get('cap');
 
-// Referencias a los elementos visuales
+// 4. REFERENCIAS A LOS ELEMENTOS VISUALES (HTML)
 const pantallaLogin = document.getElementById('pantalla-login');
 const pantallaGrabacion = document.getElementById('pantalla-grabacion');
 const btnEntrar = document.getElementById('btn-entrar');
 const inputPin = document.getElementById('input-pin');
 const tituloCapitulo = document.getElementById('titulo-capitulo');
+const mensajeError = document.getElementById('mensaje-error');
 
 // -------------------------------------------------------------------------
 // LÓGICA DE VALIDACIÓN DEL PIN
@@ -32,41 +30,50 @@ const tituloCapitulo = document.getElementById('titulo-capitulo');
 btnEntrar.addEventListener('click', async () => {
     const pinIngresado = inputPin.value;
     
-    if(!idAlbum) {
-        alert("Error: NFC no válido o falta ID del álbum.");
+    // Validación de seguridad: Verificar que el NFC mandó bien la información
+    if(!idAlbum || !numeroCapitulo) {
+        alert("Error: NFC no válido. Faltan datos del álbum o capítulo.");
         return;
     }
 
     try {
-        // Buscamos el documento en la base de datos
+        // Buscamos el documento en la base de datos de Firestore
         const docRef = db.collection("Albums").doc(idAlbum);
         const documento = await docRef.get();
 
         if (documento.exists) {
             const datos = documento.data();
+            
+            // Extraemos el PIN correcto de la base de datos
             const pinCorrecto = datos.Datos_Generales.pin_acceso;
 
             if (pinIngresado === pinCorrecto) {
-                // PIN correcto: Mostrar pantalla de grabación
+                // PIN correcto: Ocultamos login y mostramos grabación
                 pantallaLogin.style.display = "none";
                 pantallaGrabacion.style.display = "block";
+                
+                // Colocamos el título del capítulo correspondiente
                 tituloCapitulo.innerText = datos.Capitulos[numeroCapitulo].titulo;
                 
-                // Extra: Si el capítulo ya tiene audio, lo mostramos
+                // Lógica adicional: Si este capítulo ya tenía un audio grabado antes, lo mostramos
                 if (datos.Capitulos[numeroCapitulo].contenido_url !== "") {
                     mostrarReproductor(datos.Capitulos[numeroCapitulo].contenido_url);
                 }
             } else {
-                document.getElementById('mensaje-error').style.display = "block";
+                // PIN incorrecto: Mostramos el mensaje de error rojo
+                mensajeError.style.display = "block";
+                mensajeError.innerText = "PIN incorrecto. Intenta de nuevo.";
             }
         } else {
             alert("El álbum no existe en la base de datos.");
         }
     } catch (error) {
         console.error("Error consultando Firebase:", error);
+        alert("Error de conexión. Revisa la consola para más detalles.");
     }
 });
 
+// Función para mostrar el reproductor de audio y ocultar el botón de grabar
 function mostrarReproductor(url) {
     const reproductor = document.getElementById('reproductor');
     reproductor.src = url;
@@ -86,50 +93,49 @@ let fragmentosDeAudio = [];
 
 btnGrabar.addEventListener('click', async () => {
     try {
-        // 1. Pedir permiso al navegador/celular para usar el micrófono
+        // 1. Pedir permiso al navegador/celular para usar el micrófono (API nativa)
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder = new MediaRecorder(stream);
         fragmentosDeAudio = [];
 
-        // 2. ¿Qué hacer mientras graba? Guardar los pedacitos de audio en memoria
+        // 2. Mientras graba: Guardar los paquetes de datos (chunks) de audio en memoria
         mediaRecorder.ondataavailable = evento => {
             fragmentosDeAudio.push(evento.data);
         };
 
-        // 3. ¿Qué hacer al detenerse? Unir los pedazos y subir a Cloudinary
+        // 3. Al detenerse: Unir los paquetes, crear archivo y subir a Cloudinary
         mediaRecorder.onstop = async () => {
+            // Cambios visuales en la interfaz
             estadoGrabacion.innerText = "Subiendo audio, por favor espera... ⏳";
             estadoGrabacion.style.color = "#0056b3"; // Azul
             btnGrabar.style.display = "none";
 
-            // Unimos los pedazos en un solo archivo binario (Blob)
+            // Convertimos los fragmentos en un archivo de audio unificado (Blob)
             const audioBlob = new Blob(fragmentosDeAudio, { type: 'audio/webm' });
             
-            // Preparamos el paquete de datos para Cloudinary (como si llenáramos un formulario web)
+            // Preparamos el formulario virtual para enviar a Cloudinary
             const formData = new FormData();
             formData.append('file', audioBlob);
-            formData.append('upload_preset', UPLOAD_PRESET); // Tu preset: etereo_audios
+            formData.append('upload_preset', UPLOAD_PRESET); 
 
             try {
-                // Enviamos a Cloudinary mediante una petición HTTP (Fetch)
+                // Petición HTTP POST a Cloudinary
                 const respuesta = await fetch(CLOUDINARY_URL, {
                     method: 'POST',
                     body: formData
                 });
                 
-                // Cloudinary nos responde con los datos del archivo, incluyendo el enlace seguro
                 const datosCloudinary = await respuesta.json();
-                const urlAudio = datosCloudinary.secure_url;
+                const urlAudio = datosCloudinary.secure_url; // Enlace final del audio
 
-                // Mostramos el reproductor en pantalla
+                // Mostramos el reproductor con el audio subido
                 mostrarReproductor(urlAudio);
                 estadoGrabacion.innerText = "¡Audio guardado exitosamente! ✨";
                 estadoGrabacion.style.color = "green";
 
-                // 4. Actualizamos el documento en Firestore con el nuevo enlace
+                // 4. Actualizamos Firestore con la nueva URL de Cloudinary
                 const docRef = db.collection("Albums").doc(idAlbum);
                 
-                // Usamos la sintaxis de corchetes para actualizar dinámicamente un campo anidado
                 await docRef.update({
                     [`Capitulos.${numeroCapitulo}.contenido_url`]: urlAudio,
                     [`Capitulos.${numeroCapitulo}.tipo_contenido`]: "audio"
@@ -143,8 +149,10 @@ btnGrabar.addEventListener('click', async () => {
             }
         };
 
-        // Arrancar la grabación visualmente
+        // Arrancar la grabación
         mediaRecorder.start();
+        
+        // Cambios visuales: Ocultar grabar, mostrar detener
         btnGrabar.style.display = "none";
         btnDetener.style.display = "inline-block";
         estadoGrabacion.innerText = "🔴 Grabando tu mensaje...";
@@ -152,11 +160,12 @@ btnGrabar.addEventListener('click', async () => {
 
     } catch (error) {
         alert("Para grabar tu recuerdo, necesitas permitir el uso del micrófono.");
-        console.error("Permiso denegado:", error);
+        console.error("Permiso denegado al micrófono:", error);
     }
 });
 
 btnDetener.addEventListener('click', () => {
+    // Al ejecutar stop(), se dispara automáticamente el evento mediaRecorder.onstop de arriba
     mediaRecorder.stop();
     btnDetener.style.display = "none";
 });
