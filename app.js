@@ -1,8 +1,12 @@
 // 1. CONFIGURACIÓN DIRECTA DE FIREBASE
 const firebaseConfig = {
-    projectId: "etereolabstudio" // Tu ID exacto de Firebase
+    apiKey: "TU_CLAVE_API_AQUI", // Reemplaza con tu Clave de API web si la tienes
+    projectId: "etereo-album"    // <--- CAMBIO CLAVE: Este es tu ID real
 };
 
+// Inicializamos Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 // Inicializamos Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
