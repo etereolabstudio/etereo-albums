@@ -73,3 +73,90 @@ function mostrarReproductor(url) {
     reproductor.style.display = "block";
     document.getElementById('btn-grabar').style.display = "none";
 }
+
+// -------------------------------------------------------------------------
+// LÓGICA DE GRABACIÓN DE AUDIO Y SUBIDA A CLOUDINARY
+// -------------------------------------------------------------------------
+const btnGrabar = document.getElementById('btn-grabar');
+const btnDetener = document.getElementById('btn-detener');
+const estadoGrabacion = document.getElementById('estado-grabacion');
+
+let mediaRecorder;
+let fragmentosDeAudio = [];
+
+btnGrabar.addEventListener('click', async () => {
+    try {
+        // 1. Pedir permiso al navegador/celular para usar el micrófono
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        fragmentosDeAudio = [];
+
+        // 2. ¿Qué hacer mientras graba? Guardar los pedacitos de audio en memoria
+        mediaRecorder.ondataavailable = evento => {
+            fragmentosDeAudio.push(evento.data);
+        };
+
+        // 3. ¿Qué hacer al detenerse? Unir los pedazos y subir a Cloudinary
+        mediaRecorder.onstop = async () => {
+            estadoGrabacion.innerText = "Subiendo audio, por favor espera... ⏳";
+            estadoGrabacion.style.color = "#0056b3"; // Azul
+            btnGrabar.style.display = "none";
+
+            // Unimos los pedazos en un solo archivo binario (Blob)
+            const audioBlob = new Blob(fragmentosDeAudio, { type: 'audio/webm' });
+            
+            // Preparamos el paquete de datos para Cloudinary (como si llenáramos un formulario web)
+            const formData = new FormData();
+            formData.append('file', audioBlob);
+            formData.append('upload_preset', UPLOAD_PRESET); // Tu preset: etereo_audios
+
+            try {
+                // Enviamos a Cloudinary mediante una petición HTTP (Fetch)
+                const respuesta = await fetch(CLOUDINARY_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                // Cloudinary nos responde con los datos del archivo, incluyendo el enlace seguro
+                const datosCloudinary = await respuesta.json();
+                const urlAudio = datosCloudinary.secure_url;
+
+                // Mostramos el reproductor en pantalla
+                mostrarReproductor(urlAudio);
+                estadoGrabacion.innerText = "¡Audio guardado exitosamente! ✨";
+                estadoGrabacion.style.color = "green";
+
+                // 4. Actualizamos el documento en Firestore con el nuevo enlace
+                const docRef = db.collection("Albums").doc(idAlbum);
+                
+                // Usamos la sintaxis de corchetes para actualizar dinámicamente un campo anidado
+                await docRef.update({
+                    [`Capitulos.${numeroCapitulo}.contenido_url`]: urlAudio,
+                    [`Capitulos.${numeroCapitulo}.tipo_contenido`]: "audio"
+                });
+
+            } catch (error) {
+                console.error("Error al subir a Cloudinary o Firebase:", error);
+                estadoGrabacion.innerText = "Hubo un error al guardar. Intenta de nuevo.";
+                estadoGrabacion.style.color = "red";
+                btnGrabar.style.display = "inline-block";
+            }
+        };
+
+        // Arrancar la grabación visualmente
+        mediaRecorder.start();
+        btnGrabar.style.display = "none";
+        btnDetener.style.display = "inline-block";
+        estadoGrabacion.innerText = "🔴 Grabando tu mensaje...";
+        estadoGrabacion.style.color = "red";
+
+    } catch (error) {
+        alert("Para grabar tu recuerdo, necesitas permitir el uso del micrófono.");
+        console.error("Permiso denegado:", error);
+    }
+});
+
+btnDetener.addEventListener('click', () => {
+    mediaRecorder.stop();
+    btnDetener.style.display = "none";
+});
