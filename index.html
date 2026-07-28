@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Álbum Etéreo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="contenedor-principal">
+        <!-- Pantalla 1: Login con PIN -->
+        <div id="pantalla-login" class="pantalla">
+            <img src="logo-etereo.png" alt="Etéreo" class="logo">
+            <h2>Desbloquea tu recuerdo</h2>
+            <input type="number" id="input-pin" placeholder="Ingresa tu PIN de 6 dígitos">
+            <button id="btn-entrar">Ingresar</button>
+            <p id="mensaje-error" style="color: red; display: none;">PIN incorrecto</p>
+        </div>
+
+        <!-- Pantalla 2: Grabación de Audio (Se muestra si el PIN es correcto) -->
+        <div id="pantalla-grabacion" class="pantalla" style="display: none;">
+            <h2 id="titulo-capitulo">Cargando capítulo...</h2>
+            
+            <!-- Controles para grabar -->
+            <button id="btn-grabar" class="boton-accion">🔴 Grabar recuerdo</button>
+            <button id="btn-detener" class="boton-accion" style="display: none;">⬛ Detener</button>
+            
+            <p id="estado-grabacion"></p>
+            
+            <!-- Reproductor de audio final -->
+            <audio id="reproductor" controls style="display: none;"></audio>
+        </div>
+    </main>
+
+    <!-- Importamos el SDK de Firebase (Versión compatible para Vanilla JS) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <!-- Tu archivo de lógica -->
+    <script src="app.js"></script>
+</body>
+</html>
