@@ -1,13 +1,10 @@
 // 1. CONFIGURACIÓN DIRECTA DE FIREBASE
 const firebaseConfig = {
-    apiKey: "835280694390", // Reemplaza con tu Clave de API web si la tienes
-    projectId: "etereo-album"    // <--- CAMBIO CLAVE: Este es tu ID real
+    apiKey: "835280694390", // <-- Opcional: Reemplaza esto con tu clave "AIza..." si la copiaste
+    projectId: "etereo-album"        // Tu ID real y correcto
 };
 
-// Inicializamos Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-// Inicializamos Firebase
+// Inicializamos Firebase (¡Solo una vez!)
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
@@ -97,47 +94,42 @@ let fragmentosDeAudio = [];
 
 btnGrabar.addEventListener('click', async () => {
     try {
-        // 1. Pedir permiso al navegador/celular para usar el micrófono (API nativa)
+        // 1. Pedir permiso al navegador/celular para usar el micrófono
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder = new MediaRecorder(stream);
         fragmentosDeAudio = [];
 
-        // 2. Mientras graba: Guardar los paquetes de datos (chunks) de audio en memoria
+        // 2. Mientras graba: Guardar los paquetes de datos
         mediaRecorder.ondataavailable = evento => {
             fragmentosDeAudio.push(evento.data);
         };
 
         // 3. Al detenerse: Unir los paquetes, crear archivo y subir a Cloudinary
         mediaRecorder.onstop = async () => {
-            // Cambios visuales en la interfaz
             estadoGrabacion.innerText = "Subiendo audio, por favor espera... ⏳";
-            estadoGrabacion.style.color = "#0056b3"; // Azul
+            estadoGrabacion.style.color = "#0056b3"; 
             btnGrabar.style.display = "none";
 
-            // Convertimos los fragmentos en un archivo de audio unificado (Blob)
             const audioBlob = new Blob(fragmentosDeAudio, { type: 'audio/webm' });
             
-            // Preparamos el formulario virtual para enviar a Cloudinary
             const formData = new FormData();
             formData.append('file', audioBlob);
             formData.append('upload_preset', UPLOAD_PRESET); 
 
             try {
-                // Petición HTTP POST a Cloudinary
                 const respuesta = await fetch(CLOUDINARY_URL, {
                     method: 'POST',
                     body: formData
                 });
                 
                 const datosCloudinary = await respuesta.json();
-                const urlAudio = datosCloudinary.secure_url; // Enlace final del audio
+                const urlAudio = datosCloudinary.secure_url; 
 
-                // Mostramos el reproductor con el audio subido
                 mostrarReproductor(urlAudio);
                 estadoGrabacion.innerText = "¡Audio guardado exitosamente! ✨";
                 estadoGrabacion.style.color = "green";
 
-                // 4. Actualizamos Firestore con la nueva URL de Cloudinary
+                // 4. Actualizamos Firestore con la nueva URL
                 const docRef = db.collection("Albums").doc(idAlbum);
                 
                 await docRef.update({
@@ -153,10 +145,8 @@ btnGrabar.addEventListener('click', async () => {
             }
         };
 
-        // Arrancar la grabación
         mediaRecorder.start();
         
-        // Cambios visuales: Ocultar grabar, mostrar detener
         btnGrabar.style.display = "none";
         btnDetener.style.display = "inline-block";
         estadoGrabacion.innerText = "🔴 Grabando tu mensaje...";
@@ -169,7 +159,6 @@ btnGrabar.addEventListener('click', async () => {
 });
 
 btnDetener.addEventListener('click', () => {
-    // Al ejecutar stop(), se dispara automáticamente el evento mediaRecorder.onstop de arriba
     mediaRecorder.stop();
     btnDetener.style.display = "none";
 });
