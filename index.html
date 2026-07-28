@@ -3,40 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Álbum Etéreo</title>
+    <title>Etéreo - Recuerdos</title>
+    <!-- Preparando el terreno para cuando hagamos el diseño bonito -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <main class="contenedor-principal">
-        <!-- Pantalla 1: Login con PIN -->
-        <div id="pantalla-login" class="pantalla">
-            <img src="logo-etereo.png" alt="Etéreo" class="logo">
-            <h2>Desbloquea tu recuerdo</h2>
-            <input type="number" id="input-pin" placeholder="Ingresa tu PIN de 6 dígitos">
-            <button id="btn-entrar">Ingresar</button>
-            <p id="mensaje-error" style="color: red; display: none;">PIN incorrecto</p>
-        </div>
 
-        <!-- Pantalla 2: Grabación de Audio (Se muestra si el PIN es correcto) -->
-        <div id="pantalla-grabacion" class="pantalla" style="display: none;">
-            <h2 id="titulo-capitulo">Cargando capítulo...</h2>
-            
-            <!-- Controles para grabar -->
-            <button id="btn-grabar" class="boton-accion">🔴 Grabar recuerdo</button>
-            <button id="btn-detener" class="boton-accion" style="display: none;">⬛ Detener</button>
-            
-            <p id="estado-grabacion"></p>
-            
-            <!-- Reproductor de audio final -->
-            <audio id="reproductor" controls style="display: none;"></audio>
-        </div>
-    </main>
+    <!-- ==========================================
+         PANTALLA 1: VALIDACIÓN DEL PIN
+         ========================================== -->
+    <div id="pantalla-login" style="text-align: center; margin-top: 50px;">
+        <!-- Si aún no subes el logo a GitHub, saldrá un ícono roto, es normal -->
+        <img src="logo-etereo.png" alt="Logo Etéreo" style="max-width: 150px; margin-bottom: 20px;">
+        
+        <h2>Bienvenido a tu Álbum</h2>
+        <p>Por favor, ingresa el PIN de seguridad:</p>
+        
+        <input type="password" id="input-pin" placeholder="Ej. 123456" style="padding: 10px; font-size: 16px;">
+        <br><br>
+        <button id="btn-entrar" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Desbloquear</button>
+        
+        <p id="mensaje-error" style="display: none; color: red; font-weight: bold; margin-top: 15px;"></p>
+    </div>
 
-    <!-- Importamos el SDK de Firebase (Versión compatible para Vanilla JS) -->
+
+    <!-- ==========================================
+         PANTALLA 2: GRABACIÓN DE AUDIO (Oculta al inicio)
+         ========================================== -->
+    <div id="pantalla-grabacion" style="display: none; text-align: center; margin-top: 50px;">
+        <img src="logo-etereo.png" alt="Logo Etéreo" style="max-width: 100px; margin-bottom: 10px;">
+        
+        <!-- Aquí se inyectará el nombre del capítulo desde Firebase -->
+        <h2 id="titulo-capitulo">Cargando capítulo...</h2>
+        
+        <p id="estado-grabacion" style="margin-bottom: 20px;">Presiona el botón para grabar tu mensaje.</p>
+        
+        <button id="btn-grabar" style="background-color: #e74c3c; color: white; padding: 12px 24px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
+            🎤 Grabar Mensaje
+        </button>
+        
+        <button id="btn-detener" style="display: none; background-color: #2c3e50; color: white; padding: 12px 24px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
+            ⏹️ Detener Grabación
+        </button>
+        
+        <br><br>
+        <!-- Reproductor de audio nativo -->
+        <audio id="reproductor" controls style="display: none; margin: 0 auto;"></audio>
+    </div>
+
+
+    <!-- ==========================================
+         SCRIPTS: EL ORDEN AQUÍ ES VITAL
+         ========================================== -->
+    
+    <!-- 1. Primero cargamos Firebase desde los servidores de Google -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    
-    <!-- Tu archivo de lógica -->
+
+    <!-- 2. Hasta el final, cargamos TU código. 
+         ¡Asegúrate de que esta línea esté UNA SOLA VEZ en todo el archivo! -->
     <script src="app.js"></script>
+
 </body>
 </html>
