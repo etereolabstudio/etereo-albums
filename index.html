@@ -3,58 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Etéreo | Memoria Acústica</title>
-    <!-- Tus fuentes elegantes -->
+    <title>Etéreo | Memoria</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <style>
+        /* ESTILOS GENERALES Y RESPONSIVOS */
+        body {
+            background-color: #F7F7F9;
+            color: #2B2B2B;
+            font-family: 'Montserrat', sans-serif;
+            display: flex;
+            justify-content: center; /* Centra en PC */
+            align-items: center;     /* Centra verticalmente */
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* LA TARJETA (Evita que se vea feo en PC) */
+        .card {
+            background: #FFFFFF;
+            padding: 40px 30px;
+            border-radius: 16px;
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.04);
+            max-width: 380px; /* En PC no pasará de este ancho */
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .brand-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 26px;
+            font-weight: 600;
+            letter-spacing: 6px;
+            margin: 0 0 15px 0;
+            color: #1A1A1A;
+            text-transform: uppercase;
+        }
+
+        .chapter-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 22px;
+            color: #1A1A1A;
+            margin: 15px 0 5px 0;
+        }
+
+        .status-text {
+            font-size: 13px;
+            color: #8B8B8B;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .cover-image {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 15px;
+            display: none; /* Se oculta si no hay portada */
+        }
+
+        /* INPUTS Y BOTONES */
+        .pin-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #EAEAEA;
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 18px;
+            text-align: center;
+            letter-spacing: 6px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .pin-input:focus { border-color: #A39171; }
+
+        .btn-primary, .btn-secondary {
+            width: 100%;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: none;
+            border-radius: 25px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+        .btn-primary { background-color: #1A1A1A; color: #FFFFFF; }
+        .btn-primary:hover { background-color: #A39171; }
+        .btn-secondary { background-color: #A39171; color: #FFFFFF; }
+
+        /* REPRODUCTOR DE AUDIO MINIMALISTA */
+        .custom-audio-player {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #F7F7F9;
+            padding: 10px 15px;
+            border-radius: 30px;
+            margin-bottom: 20px;
+        }
+        .play-btn {
+            background-color: #A39171;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            flex-shrink: 0;
+        }
+        .progress-container {
+            flex-grow: 1;
+            height: 4px;
+            background: #EAEAEA;
+            border-radius: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: #A39171;
+            width: 0%;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 15px;
+            font-size: 11px;
+            color: #A39171;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body>
 
-    <!-- ==========================================
-         PANTALLA 1: LOGIN (Con tu estilo de tarjeta)
-         ========================================== -->
+    <!-- PANTALLA 1: LOGIN -->
     <div class="card" id="pantalla-login">
         <h1 class="brand-title">Etéreo</h1>
-        <p class="status-text">Ingresa tu clave de acceso para desbloquear esta memoria.</p>
+        <p class="status-text">Ingresa tu PIN de acceso para desbloquear este recuerdo.</p>
         
         <input type="password" id="input-pin" placeholder="PIN" class="pin-input">
         <button id="btn-entrar" class="btn-primary">Desbloquear</button>
-        
-        <p id="mensaje-error" style="display: none; color: #d63031; font-size: 12px; margin-top: 15px;"></p>
+        <p id="mensaje-error" style="display: none; color: #d63031; font-size: 12px; margin-top: 10px;"></p>
     </div>
 
-    <!-- ==========================================
-         PANTALLA 2: REPRODUCTOR SOUNDWAVE / GRABADORA
-         ========================================== -->
-    <div class="card" id="pantalla-grabacion" style="display: none;">
-        <h1 class="brand-title">Etéreo</h1>
-        <h2 id="titulo-capitulo" class="chapter-title">Cargando...</h2>
-        <p class="status-text" id="status-text">Analizando señal acústica...</p>
+    <!-- PANTALLA 2: CONTENIDO DEL ÁLBUM -->
+    <div class="card" id="pantalla-contenido" style="display: none;">
+        <h1 class="brand-title" style="font-size: 18px; margin-bottom: 20px;">Etéreo</h1>
         
-        <!-- Tu reproductor original[cite: 1] -->
-        <div class="waveform-wrapper" id="waveform-wrapper" style="display: none;">
-            <canvas id="canvas-base"></canvas>
-            <canvas id="canvas-progress"></canvas>
-            
-            <button class="play-btn" id="custom-play-btn">
-                <svg class="icon-play" id="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                <svg class="icon-pause" id="icon-pause" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-            </button>
+        <!-- Portada -->
+        <img id="portada-capitulo" class="cover-image" src="" alt="Portada del recuerdo">
+        
+        <!-- Título -->
+        <h2 id="titulo-capitulo" class="chapter-title">Cargando...</h2>
+        <p class="status-text" id="status-text"></p>
+
+        <!-- Contenedor Spotify (Iframe) -->
+        <div id="contenedor-spotify" style="display: none; margin-bottom: 20px;">
+            <iframe id="iframe-spotify" width="100%" height="152" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" style="border-radius: 12px;"></iframe>
         </div>
 
-        <!-- Botones de grabación (Se ocultan si ya hay audio) -->
-        <button id="btn-grabar" class="btn-primary" style="margin-top: 20px;">🎤 Grabar Memoria</button>
-        <button id="btn-detener" class="btn-secondary" style="display: none; margin-top: 20px;">⏹️ Detener</button>
+        <!-- Contenedor Audio Grabado (Minimalista) -->
+        <div id="contenedor-audio" style="display: none;">
+            <div class="custom-audio-player">
+                <button id="custom-play-btn" class="play-btn">▶</button>
+                <div class="progress-container">
+                    <div id="progress-bar" class="progress-bar"></div>
+                </div>
+            </div>
+            <audio id="native-audio" style="display: none;"></audio>
+        </div>
+
+        <!-- Contenedor de Grabación (Si está vacío) -->
+        <div id="contenedor-grabacion" style="display: none;">
+            <button id="btn-grabar" class="btn-primary">🎤 Grabar Recuerdo</button>
+            <button id="btn-detener" class="btn-secondary" style="display: none;">⏹️ Detener Grabación</button>
+        </div>
 
         <a href="https://etereomx.com" class="back-link">Descubre Etéreo Studio</a>
-        <audio id="native-audio"></audio>
     </div>
 
     <!-- Scripts de Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
-    <!-- Tu lógica principal -->
+    <!-- Lógica Principal -->
     <script src="app.js"></script>
 </body>
 </html>
