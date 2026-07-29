@@ -4,31 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Etéreo | Tu Historia</title>
-    <!-- Importación de tipografías -->
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     
     <style>
-        /* Estilos Globales */
-        body { font-family: 'Montserrat', sans-serif; background-color: #F2EFE9; color: #2B2B2B; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        /* 1. TEXTURA DE PAPEL Y PROFUNDIDAD */
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            /* Filtro SVG integrado para crear textura de papel algodón */
+            background-color: #F2EFE9;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+            color: #2B2B2B; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; 
+        }
         
-        /* Contenedor Principal */
-        .container { max-width: 600px; width: 90%; padding: 40px; background: #FFF; border-radius: 12px; box-shadow: 0 15px 35px rgba(163, 145, 113, 0.1); text-align: center; border-top: 5px solid #A39171; box-sizing: border-box; }
+        .container { 
+            max-width: 600px; width: 90%; padding: 40px; background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(10px); /* Efecto cristal sutil */
+            border-radius: 12px; box-shadow: 0 25px 50px rgba(163, 145, 113, 0.15); 
+            text-align: center; border-top: 5px solid #A39171; box-sizing: border-box; 
+            position: relative; overflow: hidden;
+        }
         
         h1 { font-family: 'Cormorant Garamond', serif; color: #A39171; font-size: 32px; margin-bottom: 5px; margin-top: 0; }
         
-        /* Control de Vistas (Renderizado Condicional) */
+        /* 2. ANIMACIONES DE APERTURA */
+        @keyframes pageTurn {
+            0% { opacity: 0; transform: translateY(15px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
         #pin-section, #content-section { display: none; }
-        .active { display: block !important; }
+        .active { display: block !important; animation: pageTurn 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
         
-        /* Estilos Dinámicos Específicos */
-        .carta-text { font-family: 'Cormorant Garamond', serif; font-size: 20px; line-height: 1.8; text-align: justify; font-style: italic; white-space: pre-wrap; color: #333; padding: 10px; }
-        iframe { border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: none; }
-        
+        /* 3. TIPOGRAFÍA EDITORIAL (Letra Capitular) */
+        .carta-text { font-family: 'Cormorant Garamond', serif; font-size: 19px; line-height: 1.8; text-align: justify; color: #333; padding: 10px; }
+        .carta-text::first-letter {
+            font-size: 3.5em; color: #A39171; float: left; margin-right: 8px; margin-top: -8px; line-height: 1; font-weight: 600; font-style: italic;
+        }
+
         /* Elementos de Interfaz */
         input { padding: 12px; border: 1px solid #EAEAEA; border-radius: 6px; width: 100%; max-width: 250px; font-family: 'Montserrat'; text-align: center; font-size: 16px; margin-bottom: 20px; box-sizing: border-box; }
         input:focus { border-color: #A39171; outline: none; }
-        button { background: #1A1A1A; color: #FFF; border: none; padding: 15px 30px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: background 0.3s; width: 100%; max-width: 250px; }
+        button { background: #1A1A1A; color: #FFF; border: none; padding: 15px 30px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: background 0.3s; }
         button:hover { background: #A39171; }
+        
+        /* 4. CONTROLES DE LIBRO (Paginación) */
+        .book-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #EAEAEA; }
+        .nav-btn { background: transparent; color: #A39171; border: 1px solid #A39171; padding: 10px 15px; border-radius: 4px; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; cursor: pointer; flex: 1; margin: 0 5px; transition: all 0.3s; }
+        .nav-btn:hover { background: #A39171; color: #FFF; }
+        .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; border-color: #CCC; color: #999; background: transparent; }
+        #page-indicator { font-family: 'Cormorant Garamond', serif; font-size: 16px; color: #8B8B8B; font-style: italic; flex: 1; }
         
         #loader { font-size: 14px; color: #8B8B8B; letter-spacing: 1px; text-transform: uppercase; }
     </style>
@@ -36,33 +60,34 @@
 <body>
 
     <div class="container">
-        <!-- Pantalla 1: Carga inicial -->
-        <div id="loader">Cargando la memoria...</div>
+        <div id="loader">Descifrando memorias...</div>
         
-        <!-- Pantalla 2: Validación de Seguridad -->
         <div id="pin-section">
             <h1>Etéreo</h1>
-            <p style="font-size: 13px; color: #666; margin-bottom: 30px;">Ingresa tu código para desbloquear este capítulo.</p>
-            <input type="password" id="pin-input" placeholder="PIN de 6 dígitos">
+            <p style="font-size: 13px; color: #666; margin-bottom: 30px;">Introduce la llave numérica de tu historia.</p>
+            <input type="password" id="pin-input" placeholder="PIN Secreto">
             <br>
             <button id="btn-desbloquear">Desbloquear</button>
             <p id="error-msg" style="color: #d63031; font-size: 12px; margin-top: 15px;"></p>
         </div>
 
-        <!-- Pantalla 3: El Contenido Dinámico -->
         <div id="content-section">
             <h1 id="titulo-capitulo"></h1>
-            <hr style="border: 0; height: 1px; background: #EAEAEA; margin: 20px 0;">
-            <!-- Aquí nuestro JavaScript inyectará el HTML correcto -->
+            <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #A39171; margin-top: -5px; margin-bottom: 25px;" id="subtitulo-capitulo"></p>
+            
             <div id="render-area"></div>
+
+            <!-- Botones de Paginación -->
+            <div class="book-controls">
+                <button id="btn-prev" class="nav-btn">Anterior</button>
+                <span id="page-indicator">Portada</span>
+                <button id="btn-next" class="nav-btn">Siguiente</button>
+            </div>
         </div>
     </div>
 
-    <!-- SDKs de Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    
-    <!-- Lógica de la aplicación -->
     <script src="app.js"></script>
 </body>
 </html>
