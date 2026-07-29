@@ -3,207 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Etéreo | Memoria</title>
+    <title>Etéreo | Tu Historia</title>
+    <!-- Importación de tipografías -->
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    
     <style>
-        /* ESTILOS GENERALES Y RESPONSIVOS */
-        body {
-            background-color: #F7F7F9;
-            color: #2B2B2B;
-            font-family: 'Montserrat', sans-serif;
-            display: flex;
-            justify-content: center; /* Centra en PC */
-            align-items: center;     /* Centra verticalmente */
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        /* LA TARJETA (Evita que se vea feo en PC) */
-        .card {
-            background: #FFFFFF;
-            padding: 40px 30px;
-            border-radius: 16px;
-            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.04);
-            max-width: 380px; /* En PC no pasará de este ancho */
-            width: 100%;
-            text-align: center;
-            box-sizing: border-box;
-            position: relative;
-        }
-
-        .brand-title {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 26px;
-            font-weight: 600;
-            letter-spacing: 6px;
-            margin: 0 0 15px 0;
-            color: #1A1A1A;
-            text-transform: uppercase;
-        }
-
-        .chapter-title {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 22px;
-            color: #1A1A1A;
-            margin: 15px 0 5px 0;
-        }
-
-        .status-text {
-            font-size: 13px;
-            color: #8B8B8B;
-            margin-bottom: 25px;
-            line-height: 1.5;
-        }
-
-        .cover-image {
-            width: 100%;
-            aspect-ratio: 1 / 1;
-            object-fit: cover;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            margin-bottom: 15px;
-            display: none; /* Se oculta si no hay portada */
-        }
-
-        /* INPUTS Y BOTONES */
-        .pin-input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #EAEAEA;
-            border-radius: 8px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 18px;
-            text-align: center;
-            letter-spacing: 6px;
-            margin-bottom: 20px;
-            box-sizing: border-box;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-        .pin-input:focus { border-color: #A39171; }
-
-        .btn-primary, .btn-secondary {
-            width: 100%;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 13px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            border: none;
-            border-radius: 25px;
-            padding: 15px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 10px;
-        }
-        .btn-primary { background-color: #1A1A1A; color: #FFFFFF; }
-        .btn-primary:hover { background-color: #A39171; }
-        .btn-secondary { background-color: #A39171; color: #FFFFFF; }
-
-        /* REPRODUCTOR DE AUDIO MINIMALISTA */
-        .custom-audio-player {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            background: #F7F7F9;
-            padding: 10px 15px;
-            border-radius: 30px;
-            margin-bottom: 20px;
-        }
-        .play-btn {
-            background-color: #A39171;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            flex-shrink: 0;
-        }
-        .progress-container {
-            flex-grow: 1;
-            height: 4px;
-            background: #EAEAEA;
-            border-radius: 2px;
-            position: relative;
-            overflow: hidden;
-        }
-        .progress-bar {
-            height: 100%;
-            background: #A39171;
-            width: 0%;
-        }
-
-        .back-link {
-            display: inline-block;
-            margin-top: 15px;
-            font-size: 11px;
-            color: #A39171;
-            text-decoration: none;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 600;
-        }
+        /* Estilos Globales */
+        body { font-family: 'Montserrat', sans-serif; background-color: #F2EFE9; color: #2B2B2B; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        
+        /* Contenedor Principal */
+        .container { max-width: 600px; width: 90%; padding: 40px; background: #FFF; border-radius: 12px; box-shadow: 0 15px 35px rgba(163, 145, 113, 0.1); text-align: center; border-top: 5px solid #A39171; box-sizing: border-box; }
+        
+        h1 { font-family: 'Cormorant Garamond', serif; color: #A39171; font-size: 32px; margin-bottom: 5px; margin-top: 0; }
+        
+        /* Control de Vistas (Renderizado Condicional) */
+        #pin-section, #content-section { display: none; }
+        .active { display: block !important; }
+        
+        /* Estilos Dinámicos Específicos */
+        .carta-text { font-family: 'Cormorant Garamond', serif; font-size: 20px; line-height: 1.8; text-align: justify; font-style: italic; white-space: pre-wrap; color: #333; padding: 10px; }
+        iframe { border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: none; }
+        
+        /* Elementos de Interfaz */
+        input { padding: 12px; border: 1px solid #EAEAEA; border-radius: 6px; width: 100%; max-width: 250px; font-family: 'Montserrat'; text-align: center; font-size: 16px; margin-bottom: 20px; box-sizing: border-box; }
+        input:focus { border-color: #A39171; outline: none; }
+        button { background: #1A1A1A; color: #FFF; border: none; padding: 15px 30px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: background 0.3s; width: 100%; max-width: 250px; }
+        button:hover { background: #A39171; }
+        
+        #loader { font-size: 14px; color: #8B8B8B; letter-spacing: 1px; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
-    <!-- PANTALLA 1: LOGIN -->
-    <div class="card" id="pantalla-login">
-        <h1 class="brand-title">Etéreo</h1>
-        <p class="status-text">Ingresa tu PIN de acceso para desbloquear este recuerdo.</p>
+    <div class="container">
+        <!-- Pantalla 1: Carga inicial -->
+        <div id="loader">Cargando la memoria...</div>
         
-        <input type="password" id="input-pin" placeholder="PIN" class="pin-input">
-        <button id="btn-entrar" class="btn-primary">Desbloquear</button>
-        <p id="mensaje-error" style="display: none; color: #d63031; font-size: 12px; margin-top: 10px;"></p>
+        <!-- Pantalla 2: Validación de Seguridad -->
+        <div id="pin-section">
+            <h1>Etéreo</h1>
+            <p style="font-size: 13px; color: #666; margin-bottom: 30px;">Ingresa tu código para desbloquear este capítulo.</p>
+            <input type="password" id="pin-input" placeholder="PIN de 6 dígitos">
+            <br>
+            <button id="btn-desbloquear">Desbloquear</button>
+            <p id="error-msg" style="color: #d63031; font-size: 12px; margin-top: 15px;"></p>
+        </div>
+
+        <!-- Pantalla 3: El Contenido Dinámico -->
+        <div id="content-section">
+            <h1 id="titulo-capitulo"></h1>
+            <hr style="border: 0; height: 1px; background: #EAEAEA; margin: 20px 0;">
+            <!-- Aquí nuestro JavaScript inyectará el HTML correcto -->
+            <div id="render-area"></div>
+        </div>
     </div>
 
-    <!-- PANTALLA 2: CONTENIDO DEL ÁLBUM -->
-    <div class="card" id="pantalla-contenido" style="display: none;">
-        <h1 class="brand-title" style="font-size: 18px; margin-bottom: 20px;">Etéreo</h1>
-        
-        <!-- Portada -->
-        <img id="portada-capitulo" class="cover-image" src="" alt="Portada del recuerdo">
-        
-        <!-- Título -->
-        <h2 id="titulo-capitulo" class="chapter-title">Cargando...</h2>
-        <p class="status-text" id="status-text"></p>
-
-        <!-- Contenedor Spotify (Iframe) -->
-        <div id="contenedor-spotify" style="display: none; margin-bottom: 20px;">
-            <iframe id="iframe-spotify" width="100%" height="152" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" style="border-radius: 12px;"></iframe>
-        </div>
-
-        <!-- Contenedor Audio Grabado (Minimalista) -->
-        <div id="contenedor-audio" style="display: none;">
-            <div class="custom-audio-player">
-                <button id="custom-play-btn" class="play-btn">▶</button>
-                <div class="progress-container">
-                    <div id="progress-bar" class="progress-bar"></div>
-                </div>
-            </div>
-            <audio id="native-audio" style="display: none;"></audio>
-        </div>
-
-        <!-- Contenedor de Grabación (Si está vacío) -->
-        <div id="contenedor-grabacion" style="display: none;">
-            <button id="btn-grabar" class="btn-primary">🎤 Grabar Recuerdo</button>
-            <button id="btn-detener" class="btn-secondary" style="display: none;">⏹️ Detener Grabación</button>
-        </div>
-
-        <a href="https://etereomx.com" class="back-link">Descubre Etéreo Studio</a>
-    </div>
-
-    <!-- Scripts de Firebase -->
+    <!-- SDKs de Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
-    <!-- Lógica Principal -->
+    <!-- Lógica de la aplicación -->
     <script src="app.js"></script>
 </body>
 </html>
