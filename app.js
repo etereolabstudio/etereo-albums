@@ -1,128 +1,125 @@
-// 1. CONFIGURACIÓN FIREBASE
-const firebaseConfig = {
-    projectId: "etereo-album" 
-};
+const firebaseConfig = { projectId: "etereo-album" };
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.firestore();
 
-// 2. REFERENCIAS A LA INTERFAZ
+// Referencias UI
 const loader = document.getElementById('loader');
 const pinSection = document.getElementById('pin-section');
 const contentSection = document.getElementById('content-section');
-const btnDesbloquear = document.getElementById('btn-desbloquear');
 const renderArea = document.getElementById('render-area');
 const tituloCapitulo = document.getElementById('titulo-capitulo');
+const subtituloCapitulo = document.getElementById('subtitulo-capitulo');
+const pageIndicator = document.getElementById('page-indicator');
+const btnPrev = document.getElementById('btn-prev');
+const btnNext = document.getElementById('btn-next');
 
-// 3. EXTRACCIÓN DE VARIABLES DEL CHIP NFC
+// El chip NFC ahora SOLO necesita el ID del álbum (Ej. ?id=ET-001)
 const params = new URLSearchParams(window.location.search);
 const albumId = params.get('id');
-const capituloId = params.get('cap');
 
 let datosAlbum = null;
+let ordenCapitulos = ['portada', '1', '2', '3', '4'];
+let indiceActual = 0; // 0 = portada
 
-// 4. INICIALIZACIÓN DE LA APLICACIÓN
 async function iniciar() {
-    if (!albumId || !capituloId) {
-        loader.innerText = "Error: Este enlace está incompleto (Faltan parámetros del chip).";
+    if (!albumId) {
+        loader.innerText = "Error: Falta la llave de origen (ID).";
         return;
     }
-
     try {
         const doc = await db.collection("Albums").doc(albumId).get();
         if (doc.exists) {
             datosAlbum = doc.data();
-            loader.style.display = 'none'; // Ocultamos el cargador
-            pinSection.classList.add('active'); // Mostramos el PIN
+            loader.style.display = 'none'; 
+            pinSection.classList.add('active'); 
         } else {
-            loader.innerText = "El libro no existe en los registros de Etéreo.";
+            loader.innerText = "El relato no existe en el éter.";
         }
     } catch (error) {
-        console.error("Error al conectar:", error);
         loader.innerText = "Error de conexión satelital.";
     }
 }
 
-// 5. VALIDACIÓN DE SEGURIDAD
-btnDesbloquear.addEventListener('click', () => {
-    const pinIngresado = document.getElementById('pin-input').value;
-    const errorMsg = document.getElementById('error-msg');
-
-    if (pinIngresado === datosAlbum.Datos_Generales.pin_acceso) {
+// Validación de Seguridad
+document.getElementById('btn-desbloquear').addEventListener('click', () => {
+    const pin = document.getElementById('pin-input').value;
+    if (pin === datosAlbum.Datos_Generales.pin_acceso) {
+        // Haptic feedback de éxito (vibra 50ms)
+        if(navigator.vibrate) navigator.vibrate(50);
+        
         pinSection.classList.remove('active');
-        renderizarContenido(); // El PIN es correcto, procedemos a renderizar
+        indiceActual = 0; // Siempre iniciamos en la portada
+        renderizarPagina(); 
     } else {
-        errorMsg.innerText = "PIN incorrecto. Intenta de nuevo.";
+        if(navigator.vibrate) navigator.vibrate([100, 50, 100]); // Vibración de error
+        document.getElementById('error-msg').innerText = "PIN incorrecto. Intenta de nuevo.";
     }
 });
 
-// 6. EL MOTOR DE RENDERIZADO CONDICIONAL
-function renderizarContenido() {
-    const datosCapitulo = datosAlbum.Capitulos[capituloId];
+// MOTOR DE PAGINACIÓN (Libro Virtual)
+function renderizarPagina() {
+    // 1. Reiniciar la animación forzando un reflow del DOM
+    contentSection.classList.remove('active');
+    void contentSection.offsetWidth; 
 
-    if (!datosCapitulo) {
-        contentSection.innerHTML = "<h2>Capítulo vacío o no encontrado.</h2>";
-        contentSection.classList.add('active');
-        return;
-    }
+    // 2. Extraer datos del capítulo actual
+    const claveCapitulo = ordenCapitulos[indiceActual];
+    const datosCapitulo = datosAlbum.Capitulos[claveCapitulo];
 
-    tituloCapitulo.innerText = datosCapitulo.titulo;
-    renderArea.innerHTML = ""; 
-
-    switch (datosCapitulo.tipo_contenido) {
+    if (!datosCapitulo || !datosCapitulo.valor) {
+        renderArea.innerHTML = "<p>Esta página aún está en blanco.</p>";
+    } else {
+        tituloCapitulo.innerText = datosCapitulo.titulo;
+        subtituloCapitulo.innerText = claveCapitulo === 'portada' ? "Prefacio" : `Capítulo ${claveCapitulo}`;
         
-        case 'carta':
-            renderArea.innerHTML = `<div class="carta-text">${datosCapitulo.valor}</div>`;
-            break;
-            
-        case 'spotify':
-            let linkOriginal = datosCapitulo.valor;
-            let enlaceEmbed = linkOriginal;
-            
-            const regex = /(?:track|album|playlist|episode)\/([a-zA-Z0-9]+)/;
-            const coincidencia = linkOriginal.match(regex);
-
-            if (coincidencia && coincidencia[1]) {
-                const idAudio = coincidencia[1];
-                enlaceEmbed = `https://open.spotify.com/embed/track/${idAudio}?utm_source=generator`;
-            }
-            
-            renderArea.innerHTML = `<iframe src="${enlaceEmbed}" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius: 12px;"></iframe>`;
-            break;
-
-        case 'imagen':
-            renderArea.innerHTML = `
-                <div style="padding: 10px; background: #FFF; border-radius: 6px; box-shadow: 0 15px 35px rgba(163, 145, 113, 0.2); display: inline-block; width: 100%; box-sizing: border-box; border: 1px solid #EAEAEA;">
-                    <img src="${datosCapitulo.valor}" style="width: 100%; border-radius: 4px; display: block; object-fit: cover;">
-                </div>`;
-            break;
-
-        case 'audio':
-            renderArea.innerHTML = `
-                <div style="background: #1A1A1A; padding: 25px 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; align-items: center; gap: 15px;">
-                    <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: center;">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM10 16.5V7.5L16 12L10 16.5Z" fill="#A39171"/>
-                        </svg>
-                        <span style="color: #A39171; font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;">Cápsula de Voz</span>
-                    </div>
-                    <audio controls style="width: 100%; height: 40px; outline: none; border-radius: 30px;" controlsList="nodownload">
-                        <source src="${datosCapitulo.valor}" type="audio/mpeg">
-                        Tu navegador no soporta el audio.
-                    </audio>
-                </div>`;
-            break;
-            
-        case 'mapa':
-            renderArea.innerHTML = `<iframe src="${datosCapitulo.valor}" width="100%" height="350" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
-            break;
-            
-        default:
-            renderArea.innerHTML = `<p style="font-size: 15px; line-height: 1.6; color: #444;">${datosCapitulo.valor}</p>`;
-            break;
+        // El Switch Maestro de Renderizado
+        switch (datosCapitulo.tipo_contenido) {
+            case 'carta':
+            case 'mensaje':
+                renderArea.innerHTML = `<div class="carta-text">${datosCapitulo.valor.replace(/\n/g, '<br>')}</div>`;
+                break;
+            case 'spotify':
+                let link = datosCapitulo.valor;
+                const match = link.match(/(?:track|album|playlist|episode)\/([a-zA-Z0-9]+)/);
+                if (match) link = `https://open.spotify.com/embed/track/${match[1]}?utm_source=generator`;
+                renderArea.innerHTML = `<iframe src="${link}" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius: 12px;"></iframe>`;
+                break;
+            case 'imagen':
+                renderArea.innerHTML = `<div style="padding: 10px; background: #FFF; border-radius: 6px; border: 1px solid #EAEAEA; box-shadow: 0 10px 20px rgba(0,0,0,0.05);"><img src="${datosCapitulo.valor}" style="width: 100%; border-radius: 4px; display: block; object-fit: cover;"></div>`;
+                break;
+            case 'audio':
+                renderArea.innerHTML = `<div style="background: #1A1A1A; padding: 25px 20px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 15px;"><div style="display: flex; align-items: center; gap: 10px; justify-content: center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM10 16.5V7.5L16 12L10 16.5Z" fill="#A39171"/></svg><span style="color: #A39171; font-family: 'Montserrat'; font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;">Cápsula de Voz</span></div><audio controls style="width: 100%; height: 40px; border-radius: 30px;" controlsList="nodownload"><source src="${datosCapitulo.valor}" type="audio/mpeg"></audio></div>`;
+                break;
+            case 'mapa':
+                renderArea.innerHTML = `<iframe src="${datosCapitulo.valor}" width="100%" height="350" allowfullscreen="" loading="lazy" style="border:none; border-radius: 8px;"></iframe>`;
+                break;
+        }
     }
 
+    // 3. Actualizar controles de navegación
+    pageIndicator.innerText = claveCapitulo === 'portada' ? "Portada" : `Pág. ${indiceActual}`;
+    btnPrev.disabled = indiceActual === 0;
+    btnNext.disabled = indiceActual === (ordenCapitulos.length - 1);
+
+    // 4. Activar animación de entrada
     contentSection.classList.add('active');
 }
 
-// Arrancamos el flujo
+// Eventos de Navegación (Pasar Página)
+btnNext.addEventListener('click', () => {
+    if (indiceActual < ordenCapitulos.length - 1) {
+        if(navigator.vibrate) navigator.vibrate(30); // Respuesta táctil
+        indiceActual++;
+        renderizarPagina();
+    }
+});
+
+btnPrev.addEventListener('click', () => {
+    if (indiceActual > 0) {
+        if(navigator.vibrate) navigator.vibrate(30);
+        indiceActual--;
+        renderizarPagina();
+    }
+});
+
 iniciar();
