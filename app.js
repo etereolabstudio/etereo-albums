@@ -96,11 +96,29 @@ function renderizarContenido() {
             renderArea.innerHTML = `<iframe src="${enlaceEmbed}" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius: 12px;"></iframe>`;
             break;
             
-        case 'audio':
-            // Se inyecta un reproductor de audio nativo de HTML5
+        ccase 'imagen':
+            // Estilo de fotografía impresa premium con marco sutil
             renderArea.innerHTML = `
-                <div style="margin-top: 20px; padding: 20px; background: #FAFAFA; border-radius: 8px; border: 1px solid #EAEAEA;">
-                    <audio controls style="width: 100%; outline: none;">
+                <div style="padding: 10px; background: #FFF; border-radius: 6px; box-shadow: 0 15px 35px rgba(163, 145, 113, 0.2); display: inline-block; width: 100%; box-sizing: border-box; border: 1px solid #EAEAEA;">
+                    <img src="${datosCapitulo.valor}" style="width: 100%; border-radius: 4px; display: block; object-fit: cover;">
+                </div>`;
+            break;
+
+        case 'audio':
+            // Reproductor oscuro tipo "widget" premium
+            renderArea.innerHTML = `
+                <div style="background: #1A1A1A; padding: 25px 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                    
+                    <!-- Encabezado del reproductor -->
+                    <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: center;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM10 16.5V7.5L16 12L10 16.5Z" fill="#A39171"/>
+                        </svg>
+                        <span style="color: #A39171; font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;">Cápsula de Voz</span>
+                    </div>
+                    
+                    <!-- Reproductor nativo enmascarado -->
+                    <audio controls style="width: 100%; height: 40px; outline: none; border-radius: 30px;" controlsList="nodownload">
                         <source src="${datosCapitulo.valor}" type="audio/mpeg">
                         Tu navegador no soporta el audio.
                     </audio>
