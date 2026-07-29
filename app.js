@@ -45,37 +45,40 @@ async function iniciar() {
     }
 }
 
-// LOGICA DE SEGURIDAD (Local Storage + Global)
+// LOGICA DE SEGURIDAD MEJORADA (Retrocompatible)
 function prepararSeguridad() {
     loader.style.display = 'none'; 
     pinSection.classList.add('active');
     
-    // Verificamos si el album es público O si este celular ya tiene el PIN guardado
-    const pinGuardado = localStorage.getItem(`etereo_pin_${albumId}`);
+    // 1. Buscamos el PIN viejo o el nuevo y forzamos a que sea Texto (String)
+    const pinCorrecto = String(datosAlbum.Datos_Generales.pin_acceso || datosAlbum.Datos_Generales.pin || "");
+    
+    // 2. Si modo_publico no existe en la base de datos vieja, por defecto será false
     const esPublico = datosAlbum.Datos_Generales.modo_publico === true;
+    
+    const pinGuardado = localStorage.getItem(`etereo_pin_${albumId}`);
 
-    if (esPublico || pinGuardado === datosAlbum.Datos_Generales.pin_acceso) {
-        // No pedimos PIN, pero requerimos que aprieten el botón para que el navegador nos deje reproducir música
+    if (esPublico || pinGuardado === pinCorrecto) {
         document.getElementById('pin-input').style.display = 'none';
         document.getElementById('pin-instruction').innerText = "Tu conexión con este fragmento está establecida.";
         btnDesbloquear.innerText = "Leer Memoria";
         
-        // Asignamos el evento de pasar directo
-        btnDesbloquear.onclick = () => desvelarMagia(true);
+        // Pasamos el pinCorrecto a la función para no volver a calcularlo
+        btnDesbloquear.onclick = () => desvelarMagia(true, pinCorrecto);
     } else {
-        // Si necesita PIN
-        btnDesbloquear.onclick = () => desvelarMagia(false);
+        btnDesbloquear.onclick = () => desvelarMagia(false, pinCorrecto);
     }
 }
 
-function desvelarMagia(saltoDirecto) {
+function desvelarMagia(saltoDirecto, pinCorrecto) {
     let accesoConcedido = saltoDirecto;
 
     if (!saltoDirecto) {
         const pinIngresado = document.getElementById('pin-input').value;
-        if (pinIngresado === datosAlbum.Datos_Generales.pin_acceso) {
+        
+        // Ahora comparamos peras con peras (Texto contra Texto)
+        if (pinIngresado === pinCorrecto) {
             accesoConcedido = true;
-            // Guardamos el PIN en la memoria del celular del cliente para que no lo vuelva a pedir
             localStorage.setItem(`etereo_pin_${albumId}`, pinIngresado);
         } else {
             if(navigator.vibrate) navigator.vibrate([100, 50, 100]); 
@@ -86,10 +89,9 @@ function desvelarMagia(saltoDirecto) {
     if (accesoConcedido) {
         if(navigator.vibrate) navigator.vibrate([30, 50, 30]); 
         
-        // Reproducir Banda Sonora Global (si existe)
         if (datosAlbum.Datos_Generales.soundtrack) {
             bgAudio.src = datosAlbum.Datos_Generales.soundtrack;
-            bgAudio.volume = 0.4; // Volumen suave para no asustar
+            bgAudio.volume = 0.4;
             bgAudio.play().catch(e => console.log("El navegador bloqueó el audio"));
         }
 
