@@ -4,135 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Etéreo | Memoria Activa</title>
-    <!-- Importación de tipografías premium desde Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     
     <style>
-        /* 1. BASE Y TEXTURA DE PAPEL */
         body { 
             font-family: 'Montserrat', sans-serif; 
             background-color: #F2EFE9;
-            /* Filtro SVG integrado para crear ruido/textura de papel */
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
-            color: #2B2B2B; 
-            margin: 0; 
-            padding: 0; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            min-height: 100vh; 
+            color: #2B2B2B; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; 
         }
         
-        /* 2. CONTENEDOR PRINCIPAL (Glassmorphism sutil) */
         .container { 
-            max-width: 600px; 
-            width: 90%; 
-            padding: 40px; 
-            background: rgba(255, 255, 255, 0.95); 
+            max-width: 600px; width: 90%; padding: 40px; background: rgba(255, 255, 255, 0.95); 
             backdrop-filter: blur(10px); 
-            border-radius: 12px; 
-            box-shadow: 0 25px 50px rgba(163, 145, 113, 0.15); 
-            text-align: center; 
-            border-top: 5px solid #A39171; 
-            box-sizing: border-box; 
-            position: relative; 
-            overflow: hidden;
+            border-radius: 12px; box-shadow: 0 25px 50px rgba(163, 145, 113, 0.15); 
+            text-align: center; border-top: 5px solid #A39171; box-sizing: border-box; 
+            position: relative; overflow: hidden;
         }
         
-        h1 { 
-            font-family: 'Cormorant Garamond', serif; 
-            color: #A39171; 
-            font-size: 32px; 
-            margin-bottom: 5px; 
-            margin-top: 0; 
-        }
+        h1 { font-family: 'Cormorant Garamond', serif; color: #A39171; font-size: 32px; margin-bottom: 5px; margin-top: 0; }
         
-        /* 3. ANIMACIONES DE TRANSICIÓN */
-        @keyframes fadeIn {
-            0% { opacity: 0; transform: translateY(15px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeIn { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
         
         #pin-section, #content-section { display: none; }
         .active { display: block !important; animation: fadeIn 0.8s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
         
-        /* 4. TIPOGRAFÍA EDITORIAL PARA TEXTOS LARGOS (Letra Capitular) */
-        .carta-text { 
-            font-family: 'Cormorant Garamond', serif; 
-            font-size: 19px; 
-            line-height: 1.8; 
-            text-align: justify; 
-            color: #333; 
-            padding: 10px; 
-        }
-        .carta-text::first-letter { 
-            font-size: 3.5em; 
-            color: #A39171; 
-            float: left; 
-            margin-right: 8px; 
-            margin-top: -8px; 
-            line-height: 1; 
-            font-weight: 600; 
-            font-style: italic; 
-        }
+        /* LETRA CAPITULAR CORREGIDA */
+        .carta-text { font-family: 'Cormorant Garamond', serif; font-size: 19px; line-height: 1.8; text-align: justify; color: #333; padding: 10px; }
+        .carta-text::first-letter { font-size: 3.5em; color: #A39171; float: left; margin-right: 4px; margin-top: -2px; line-height: 0.85; font-weight: 600; font-style: italic; }
 
-        /* 5. CONTROLES DE FORMULARIO */
-        input { 
-            padding: 12px; 
-            border: 1px solid #EAEAEA; 
-            border-radius: 6px; 
-            width: 100%; 
-            max-width: 250px; 
-            font-family: 'Montserrat'; 
-            text-align: center; 
-            font-size: 16px; 
-            margin-bottom: 20px; 
-            box-sizing: border-box; 
-        }
+        input { padding: 12px; border: 1px solid #EAEAEA; border-radius: 6px; width: 100%; max-width: 250px; font-family: 'Montserrat'; text-align: center; font-size: 16px; margin-bottom: 10px; box-sizing: border-box; }
         input:focus { border-color: #A39171; outline: none; }
-        
-        button { 
-            background: #1A1A1A; 
-            color: #FFF; 
-            border: none; 
-            padding: 15px 30px; 
-            border-radius: 6px; 
-            font-size: 14px; 
-            font-weight: 600; 
-            cursor: pointer; 
-            text-transform: uppercase; 
-            letter-spacing: 1px; 
-            transition: background 0.3s; 
-        }
+        button { background: #1A1A1A; color: #FFF; border: none; padding: 15px 30px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: background 0.3s; margin-top: 10px;}
         button:hover { background: #A39171; }
         
-        /* 6. INDICADOR DE ACCIÓN FÍSICA PULSANTE */
-        .phygital-prompt { 
-            margin-top: 40px; 
-            padding-top: 20px; 
-            border-top: 1px solid #EAEAEA; 
-            font-size: 11px; 
-            text-transform: uppercase; 
-            letter-spacing: 2px; 
-            color: #8B8B8B; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 10px; 
-        }
-        .phygital-prompt svg { 
-            width: 16px; 
-            height: 16px; 
-            fill: #A39171; 
-            animation: pulse 2s infinite; 
-        }
+        /* SWITCH DE PRIVACIDAD PARA EL CLIENTE */
+        .privacy-toggle { margin-top: 30px; padding-top: 20px; border-top: 1px dashed #DCDCDC; font-size: 12px; color: #666; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .toggle-btn { background: transparent; border: 1px solid #A39171; color: #A39171; padding: 8px 15px; font-size: 10px; }
+        .toggle-btn:hover { background: rgba(163, 145, 113, 0.1); }
+        
+        /* METADATOS DE TIEMPO Y ESPACIO */
+        .metadata-line { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 14px; color: #8B8B8B; margin-bottom: 20px; border-bottom: 1px solid #F0F0F0; padding-bottom: 10px; display: inline-block; }
 
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.7; }
-            100% { transform: scale(1); opacity: 1; }
-        }
+        .phygital-prompt { margin-top: 40px; padding-top: 20px; border-top: 1px solid #EAEAEA; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #8B8B8B; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .phygital-prompt svg { width: 16px; height: 16px; fill: #A39171; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
         
         #loader { font-size: 14px; color: #8B8B8B; letter-spacing: 1px; text-transform: uppercase; }
     </style>
@@ -140,41 +56,38 @@
 <body>
 
     <div class="container">
-        <!-- Pantalla de Carga -->
         <div id="loader">Conectando con el éter...</div>
         
-        <!-- Pantalla 1: Solicitud de PIN -->
         <div id="pin-section">
             <h1>Etéreo</h1>
-            <p style="font-size: 13px; color: #666; margin-bottom: 30px;">Introduce el código de esta memoria.</p>
+            <p id="pin-instruction" style="font-size: 13px; color: #666; margin-bottom: 20px;">Introduce el código de esta memoria.</p>
             <input type="password" id="pin-input" placeholder="PIN de acceso">
             <br>
             <button id="btn-desbloquear">Desvelar</button>
             <p id="error-msg" style="color: #d63031; font-size: 12px; margin-top: 15px;"></p>
         </div>
 
-        <!-- Pantalla 2: El Contenido Renderizado -->
         <div id="content-section">
             <h1 id="titulo-capitulo"></h1>
-            <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #A39171; margin-top: -5px; margin-bottom: 25px;" id="subtitulo-capitulo"></p>
+            <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #A39171; margin-top: -5px; margin-bottom: 5px;" id="subtitulo-capitulo"></p>
+            
+            <!-- Contenedor para la fecha y ubicación -->
+            <div id="metadata-container"></div>
             
             <div id="render-area"></div>
 
-            <!-- Este indicador aparecerá en los capítulos, pero se ocultará en la portada -->
-            <div id="phygital-prompt" class="phygital-prompt">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM11 19.93C7.05 19.43 4 16.05 4 12C4 7.95 7.05 4.57 11 4.07V19.93ZM13 4.07C16.95 4.57 20 7.95 20 12C20 16.05 16.95 19.43 13 19.93V4.07Z"/>
-                </svg>
-                Acerca tu dispositivo al siguiente punto físico
+            <div class="phygital-prompt">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM11 19.93C7.05 19.43 4 16.05 4 12C4 7.95 7.05 4.57 11 4.07V19.93ZM13 4.07C16.95 4.57 20 7.95 20 12C20 16.05 16.95 19.43 13 19.93V4.07Z"/></svg>
+                Acerca tu dispositivo al siguiente punto
             </div>
         </div>
     </div>
 
-    <!-- SDKs de Firebase (Versión 8 de compatibilidad) -->
+    <!-- Elemento de Audio Oculto para la Banda Sonora -->
+    <audio id="bg-audio" loop></audio>
+
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    
-    <!-- Tu archivo lógico -->
     <script src="app.js"></script>
 </body>
 </html>
