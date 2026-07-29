@@ -56,34 +56,41 @@ btnEntrar.addEventListener('click', async () => {
             const datos = documento.data();
             if (pinIngresado === datos.Datos_Generales.pin_acceso) {
                 
-                // Mostrar pantalla principal
                 pantallaLogin.style.display = "none";
                 pantallaContenido.style.display = "block";
                 
                 const dataCapitulo = datos.Capitulos[numeroCapitulo];
                 tituloCapitulo.innerText = dataCapitulo.titulo;
 
-                // 1. GESTIONAR PORTADA
+                // Cargar imagen si existe
                 if (dataCapitulo.url_portada && dataCapitulo.url_portada !== "") {
                     imgPortada.src = dataCapitulo.url_portada;
                     imgPortada.style.display = "block";
                 }
 
-                // 2. GESTIONAR CONTENIDO (Spotify, Audio o Vacío)
-                if (dataCapitulo.tipo_contenido === "spotify") {
-                    statusText.innerText = "Canción vinculada.";
-                    iframeSpotify.src = dataCapitulo.contenido_url;
-                    contSpotify.style.display = "block";
-                
-                } else if (dataCapitulo.tipo_contenido === "audio" && dataCapitulo.contenido_url !== "") {
-                    statusText.innerText = "Memoria de voz vinculada.";
-                    audioNativo.src = dataCapitulo.contenido_url;
-                    contAudio.style.display = "block";
-                
+                // LÓGICA DE VISUALIZACIÓN POR TIPO DE NFC
+                if (numeroCapitulo === "portada") {
+                    // MODO BIENVENIDA: Solo foto y título
+                    statusText.innerText = "Bienvenido a tu historia.";
+                    contSpotify.style.display = "none";
+                    contAudio.style.display = "none";
+                    contGrabacion.style.display = "none";
                 } else {
-                    // Está vacío, permitimos grabar
-                    statusText.innerText = "Cápsula vacía. Lista para grabar tu mensaje.";
-                    contGrabacion.style.display = "block";
+                    // MODO CAPÍTULO (1, 2, 3, 4)
+                    if (dataCapitulo.tipo_contenido === "spotify") {
+                        statusText.innerText = "Canción vinculada.";
+                        iframeSpotify.src = dataCapitulo.contenido_url;
+                        contSpotify.style.display = "block";
+                    
+                    } else if (dataCapitulo.tipo_contenido === "audio" && dataCapitulo.contenido_url !== "") {
+                        statusText.innerText = "Memoria de voz vinculada.";
+                        audioNativo.src = dataCapitulo.contenido_url;
+                        contAudio.style.display = "block";
+                    
+                    } else {
+                        statusText.innerText = "Cápsula vacía. Lista para grabar tu mensaje.";
+                        contGrabacion.style.display = "block";
+                    }
                 }
 
             } else {
@@ -164,7 +171,6 @@ btnGrabar.addEventListener('click', async () => {
                     [`Capitulos.${numeroCapitulo}.tipo_contenido`]: "audio"
                 });
 
-                // Mostrar el reproductor elegante
                 statusText.innerText = "Memoria guardada exitosamente.";
                 contGrabacion.style.display = "none";
                 audioNativo.src = urlAudio;
