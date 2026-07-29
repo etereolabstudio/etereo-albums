@@ -1,199 +1,118 @@
-// ==========================================
-// 1. CONFIGURACIÓN FIREBASE Y CLOUDINARY
-// ==========================================
-const firebaseConfig = { projectId: "etereo-album" };
-firebase.initializeApp(firebaseConfig);
+// 1. CONFIGURACIÓN FIREBASE (Asegúrate de que coincida con tu proyecto)
+const firebaseConfig = {
+    projectId: "etereo-album" 
+};
+if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.firestore();
 
-const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/etereomx/auto/upload";
-const UPLOAD_PRESET = "etereo_audios"; 
-
-const parametrosURL = new URLSearchParams(window.location.search);
-const idAlbum = parametrosURL.get('id');
-const numeroCapitulo = parametrosURL.get('cap');
-
-// ==========================================
-// 2. REFERENCIAS HTML
-// ==========================================
-const pantallaLogin = document.getElementById('pantalla-login');
-const pantallaContenido = document.getElementById('pantalla-contenido');
-const btnEntrar = document.getElementById('btn-entrar');
-const inputPin = document.getElementById('input-pin');
-const mensajeError = document.getElementById('mensaje-error');
-
-const imgPortada = document.getElementById('portada-capitulo');
+// 2. REFERENCIAS A LA INTERFAZ
+const loader = document.getElementById('loader');
+const pinSection = document.getElementById('pin-section');
+const contentSection = document.getElementById('content-section');
+const btnDesbloquear = document.getElementById('btn-desbloquear');
+const renderArea = document.getElementById('render-area');
 const tituloCapitulo = document.getElementById('titulo-capitulo');
-const statusText = document.getElementById('status-text');
 
-const contSpotify = document.getElementById('contenedor-spotify');
-const iframeSpotify = document.getElementById('iframe-spotify');
+// 3. EXTRACCIÓN DE VARIABLES DEL CHIP NFC
+const params = new URLSearchParams(window.location.search);
+const albumId = params.get('id');
+const capituloId = params.get('cap');
 
-const contAudio = document.getElementById('contenedor-audio');
-const audioNativo = document.getElementById('native-audio');
-const btnPlay = document.getElementById('custom-play-btn');
-const progressBar = document.getElementById('progress-bar');
+let datosAlbum = null;
 
-const contGrabacion = document.getElementById('contenedor-grabacion');
-const btnGrabar = document.getElementById('btn-grabar');
-const btnDetener = document.getElementById('btn-detener');
-
-// ==========================================
-// 3. VALIDACIÓN DE PIN Y LÓGICA DE CONTENIDO
-// ==========================================
-btnEntrar.addEventListener('click', async () => {
-    const pinIngresado = inputPin.value;
-    
-    if(!idAlbum || !numeroCapitulo) {
-        alert("Faltan datos del NFC.");
+// 4. INICIALIZACIÓN DE LA APLICACIÓN
+async function iniciar() {
+    if (!albumId || !capituloId) {
+        loader.innerText = "Error: Este enlace está incompleto.";
         return;
     }
-    btnEntrar.innerText = "Verificando...";
 
     try {
-        const documento = await db.collection("Albums").doc(idAlbum).get();
-
-        if (documento.exists) {
-            const datos = documento.data();
-            if (pinIngresado === datos.Datos_Generales.pin_acceso) {
-                
-                pantallaLogin.style.display = "none";
-                pantallaContenido.style.display = "block";
-                
-                const dataCapitulo = datos.Capitulos[numeroCapitulo];
-                tituloCapitulo.innerText = dataCapitulo.titulo;
-
-                // Cargar imagen si existe
-                if (dataCapitulo.url_portada && dataCapitulo.url_portada !== "") {
-                    imgPortada.src = dataCapitulo.url_portada;
-                    imgPortada.style.display = "block";
-                }
-
-                // LÓGICA DE VISUALIZACIÓN POR TIPO DE NFC
-                if (numeroCapitulo === "portada") {
-                    // MODO BIENVENIDA: Solo foto y título
-                    statusText.innerText = "Bienvenido a tu historia.";
-                    contSpotify.style.display = "none";
-                    contAudio.style.display = "none";
-                    contGrabacion.style.display = "none";
-                } else {
-                    // MODO CAPÍTULO (1, 2, 3, 4)
-                    if (dataCapitulo.tipo_contenido === "spotify") {
-                        statusText.innerText = "Canción vinculada.";
-                        iframeSpotify.src = dataCapitulo.contenido_url;
-                        contSpotify.style.display = "block";
-                    
-                    } else if (dataCapitulo.tipo_contenido === "audio" && dataCapitulo.contenido_url !== "") {
-                        statusText.innerText = "Memoria de voz vinculada.";
-                        audioNativo.src = dataCapitulo.contenido_url;
-                        contAudio.style.display = "block";
-                    
-                    } else {
-                        statusText.innerText = "Cápsula vacía. Lista para grabar tu mensaje.";
-                        contGrabacion.style.display = "block";
-                    }
-                }
-
-            } else {
-                mensajeError.style.display = "block";
-                mensajeError.innerText = "PIN incorrecto.";
-                btnEntrar.innerText = "Desbloquear";
-            }
+        const doc = await db.collection("Albums").doc(albumId).get();
+        if (doc.exists) {
+            datosAlbum = doc.data();
+            loader.style.display = 'none'; // Ocultamos el cargador
+            pinSection.classList.add('active'); // Mostramos el PIN
         } else {
-            alert("Álbum no encontrado.");
-            btnEntrar.innerText = "Desbloquear";
+            loader.innerText = "El libro no existe en los registros de Etéreo.";
         }
     } catch (error) {
-        console.error(error);
-        alert("Error de conexión.");
-        btnEntrar.innerText = "Desbloquear";
+        console.error("Error al conectar:", error);
+        loader.innerText = "Error de conexión satelital.";
     }
-});
+}
 
-// ==========================================
-// 4. CONTROLES DEL REPRODUCTOR DE AUDIO ELEGANTE
-// ==========================================
-let isPlaying = false;
+// 5. VALIDACIÓN DE SEGURIDAD
+btnDesbloquear.addEventListener('click', () => {
+    const pinIngresado = document.getElementById('pin-input').value;
+    const errorMsg = document.getElementById('error-msg');
 
-btnPlay.addEventListener('click', () => {
-    if (!isPlaying) {
-        audioNativo.play();
-        btnPlay.innerText = "⏸";
-        isPlaying = true;
+    if (pinIngresado === datosAlbum.Datos_Generales.pin_acceso) {
+        pinSection.classList.remove('active');
+        renderizarContenido(); // El PIN es correcto, procedemos a renderizar
     } else {
-        audioNativo.pause();
-        btnPlay.innerText = "▶";
-        isPlaying = false;
+        errorMsg.innerText = "PIN incorrecto. Intenta de nuevo.";
     }
 });
 
-audioNativo.addEventListener('timeupdate', () => {
-    const progreso = (audioNativo.currentTime / audioNativo.duration) * 100;
-    progressBar.style.width = progreso + "%";
-});
+// 6. EL MOTOR DE RENDERIZADO CONDICIONAL
+function renderizarContenido() {
+    // Apuntamos matemáticamente al capítulo correcto
+    const datosCapitulo = datosAlbum.Capitulos[capituloId];
 
-audioNativo.addEventListener('ended', () => {
-    btnPlay.innerText = "▶";
-    isPlaying = false;
-    progressBar.style.width = "0%";
-});
+    if (!datosCapitulo) {
+        contentSection.innerHTML = "<h2>Capítulo vacío o no encontrado.</h2>";
+        contentSection.classList.add('active');
+        return;
+    }
 
-// ==========================================
-// 5. LÓGICA DE GRABACIÓN (Micro -> Cloudinary)
-// ==========================================
-let mediaRecorder;
-let fragmentosDeAudio = [];
+    // Inyectamos el título
+    tituloCapitulo.innerText = datosCapitulo.titulo;
+    renderArea.innerHTML = ""; // Limpiamos el lienzo
 
-btnGrabar.addEventListener('click', async () => {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        fragmentosDeAudio = [];
-
-        mediaRecorder.ondataavailable = e => fragmentosDeAudio.push(e.data);
-
-        mediaRecorder.onstop = async () => {
-            statusText.innerText = "Guardando memoria en la nube...";
-            btnGrabar.style.display = "none";
-
-            const audioBlob = new Blob(fragmentosDeAudio, { type: 'audio/webm' });
-            const formData = new FormData();
-            formData.append('file', audioBlob);
-            formData.append('upload_preset', UPLOAD_PRESET); 
-
-            try {
-                const respuesta = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
-                const datosCloudinary = await respuesta.json();
-                const urlAudio = datosCloudinary.secure_url; 
-
-                // Actualizar Firestore
-                await db.collection("Albums").doc(idAlbum).update({
-                    [`Capitulos.${numeroCapitulo}.contenido_url`]: urlAudio,
-                    [`Capitulos.${numeroCapitulo}.tipo_contenido`]: "audio"
-                });
-
-                statusText.innerText = "Memoria guardada exitosamente.";
-                contGrabacion.style.display = "none";
-                audioNativo.src = urlAudio;
-                contAudio.style.display = "block";
-
-            } catch (error) {
-                console.error(error);
-                statusText.innerText = "Error al guardar.";
-                btnGrabar.style.display = "block";
+    // Evaluamos la variable 'tipo_contenido' para construir la UI
+    switch (datosCapitulo.tipo_contenido) {
+        
+        case 'carta':
+            // Se inyecta un bloque div estilizado como literatura clásica
+            renderArea.innerHTML = `<div class="carta-text">${datosCapitulo.valor}</div>`;
+            break;
+            
+        case 'spotify':
+            // Lógica inteligente: Convierte un link normal que te dé el cliente a un link de reproductor insertable (embed)
+            let embedUrl = datosCapitulo.valor;
+            if(embedUrl.includes('open.spotify.com/track')) {
+                embedUrl = embedUrl.replace('/track/', '/embed/track/');
+                embedUrl = embedUrl.split('?')[0]; // Limpia parámetros extra de rastreo de Spotify
             }
-        };
-
-        mediaRecorder.start();
-        btnGrabar.style.display = "none";
-        btnDetener.style.display = "block";
-        statusText.innerHTML = "<span style='color:#d63031;'>🔴 Grabando memoria...</span>";
-
-    } catch (error) {
-        alert("Habilita el micrófono para grabar.");
+            renderArea.innerHTML = `<iframe src="${embedUrl}" width="100%" height="152" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
+            break;
+            
+        case 'audio':
+            // Se inyecta un reproductor de audio nativo de HTML5
+            renderArea.innerHTML = `
+                <div style="margin-top: 20px; padding: 20px; background: #FAFAFA; border-radius: 8px; border: 1px solid #EAEAEA;">
+                    <audio controls style="width: 100%; outline: none;">
+                        <source src="${datosCapitulo.valor}" type="audio/mpeg">
+                        Tu navegador no soporta el audio.
+                    </audio>
+                </div>`;
+            break;
+            
+        case 'mapa':
+            // Se inyecta un mapa de Google interactivo. El cliente debe darte un enlace "Embed" o de "Insertar mapa" de Google Maps
+            renderArea.innerHTML = `<iframe src="${datosCapitulo.valor}" width="100%" height="350" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
+            break;
+            
+        default:
+            // Comportamiento por defecto (mensajes de texto simple o bienvenidas)
+            renderArea.innerHTML = `<p style="font-size: 15px; line-height: 1.6; color: #444;">${datosCapitulo.valor}</p>`;
+            break;
     }
-});
 
-btnDetener.addEventListener('click', () => {
-    mediaRecorder.stop();
-    btnDetener.style.display = "none";
-});
+    // Finalmente, mostramos la sección ya ensamblada
+    contentSection.classList.add('active');
+}
+
+// Arrancamos el flujo
+iniciar();
