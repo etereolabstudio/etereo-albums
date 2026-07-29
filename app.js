@@ -79,13 +79,21 @@ function renderizarContenido() {
             break;
             
         case 'spotify':
-            // Lógica inteligente: Convierte un link normal que te dé el cliente a un link de reproductor insertable (embed)
-            let embedUrl = datosCapitulo.valor;
-            if(embedUrl.includes('open.spotify.com/track')) {
-                embedUrl = embedUrl.replace('/track/', '/embed/track/');
-                embedUrl = embedUrl.split('?')[0]; // Limpia parámetros extra de rastreo de Spotify
+            let linkOriginal = datosCapitulo.valor;
+            let enlaceEmbed = linkOriginal;
+            
+            // Usamos Regex para extraer el ID exacto de la canción, ignorando basura o formatos 'intl-es'
+            const regex = /(?:track|album|playlist|episode)\/([a-zA-Z0-9]+)/;
+            const coincidencia = linkOriginal.match(regex);
+
+            if (coincidencia && coincidencia[1]) {
+                const idAudio = coincidencia[1];
+                // Reconstruimos el enlace maestro autorizado por Spotify
+                enlaceEmbed = `https://open.spotify.com/embed/track/${idAudio}?utm_source=generator`;
             }
-            renderArea.innerHTML = `<iframe src="${embedUrl}" width="100%" height="152" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
+            
+            // Renderizamos el iframe sin errores de seguridad
+            renderArea.innerHTML = `<iframe src="${enlaceEmbed}" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius: 12px;"></iframe>`;
             break;
             
         case 'audio':
