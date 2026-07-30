@@ -223,7 +223,12 @@ function renderizarFragmento() {
 
         case 'audio':
             // 1. Limpiamos la URL de cualquier espacio o salto de línea invisible
-            const urlAudio = datosCapitulo.valor.trim();
+            let urlAudio = datosCapitulo.valor.trim();
+            
+            // 🌟 EL TRUCO: Si el archivo viene de Cloudinary, forzamos su conversión a MP3 universal
+            if (urlAudio.includes("cloudinary.com")) {
+                urlAudio = urlAudio.replace(/\.[^/.]+$/, ".mp3");
+            }
 
             renderArea.innerHTML = `
                 <div style="background: #FDFCFB; border: 1px solid #A39171; padding: 25px 20px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 15px; box-shadow: 0 10px 20px rgba(163, 145, 113, 0.05);">
