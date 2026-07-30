@@ -1,4 +1,4 @@
-const firebaseConfig = { projectId: "etereo-album" };
+const firebaseConfig = { projectId: "etereo-album" }; // Tu ID de Firebase
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.firestore();
 
@@ -11,6 +11,8 @@ const subtituloCapitulo = document.getElementById('subtitulo-capitulo');
 const metadataContainer = document.getElementById('metadata-container');
 const btnDesbloquear = document.getElementById('btn-desbloquear');
 const bgAudio = document.getElementById('bg-audio');
+const globalPrompt = document.getElementById('global-prompt');
+const promptText = document.getElementById('prompt-text');
 
 const params = new URLSearchParams(window.location.search);
 const albumId = params.get('id');
@@ -28,14 +30,12 @@ async function iniciar() {
         const doc = await db.collection("Albums").doc(albumId).get();
         if (doc.exists) {
             datosAlbum = doc.data();
-            
             if (capituloId.toLowerCase() !== 'portada' && capituloId.toLowerCase() !== 'colofon') {
                 if (!datosAlbum.Capitulos || !datosAlbum.Capitulos[capituloId] || !datosAlbum.Capitulos[capituloId].valor) {
                     loader.innerText = "Esta página de la libreta aún está en blanco.";
                     return;
                 }
             }
-
             prepararSeguridad();
         } else {
             loader.innerText = "El relato no existe en nuestros registros.";
@@ -45,17 +45,13 @@ async function iniciar() {
     }
 }
 
-// LOGICA DE SEGURIDAD MEJORADA (Retrocompatible)
+// LOGICA DE SEGURIDAD RETROCOMPATIBLE
 function prepararSeguridad() {
     loader.style.display = 'none'; 
     pinSection.classList.add('active');
     
-    // 1. Buscamos el PIN viejo o el nuevo y forzamos a que sea Texto (String)
     const pinCorrecto = String(datosAlbum.Datos_Generales.pin_acceso || datosAlbum.Datos_Generales.pin || "");
-    
-    // 2. Si modo_publico no existe en la base de datos vieja, por defecto será false
     const esPublico = datosAlbum.Datos_Generales.modo_publico === true;
-    
     const pinGuardado = localStorage.getItem(`etereo_pin_${albumId}`);
 
     if (esPublico || pinGuardado === pinCorrecto) {
@@ -63,7 +59,6 @@ function prepararSeguridad() {
         document.getElementById('pin-instruction').innerText = "Tu conexión con este fragmento está establecida.";
         btnDesbloquear.innerText = "Leer Memoria";
         
-        // Pasamos el pinCorrecto a la función para no volver a calcularlo
         btnDesbloquear.onclick = () => desvelarMagia(true, pinCorrecto);
     } else {
         btnDesbloquear.onclick = () => desvelarMagia(false, pinCorrecto);
@@ -75,8 +70,6 @@ function desvelarMagia(saltoDirecto, pinCorrecto) {
 
     if (!saltoDirecto) {
         const pinIngresado = document.getElementById('pin-input').value;
-        
-        // Ahora comparamos peras con peras (Texto contra Texto)
         if (pinIngresado === pinCorrecto) {
             accesoConcedido = true;
             localStorage.setItem(`etereo_pin_${albumId}`, pinIngresado);
@@ -92,7 +85,7 @@ function desvelarMagia(saltoDirecto, pinCorrecto) {
         if (datosAlbum.Datos_Generales.soundtrack) {
             bgAudio.src = datosAlbum.Datos_Generales.soundtrack;
             bgAudio.volume = 0.4;
-            bgAudio.play().catch(e => console.log("El navegador bloqueó el audio"));
+            bgAudio.play().catch(e => console.log("Audio bloqueado por el navegador"));
         }
 
         pinSection.classList.remove('active');
@@ -100,17 +93,16 @@ function desvelarMagia(saltoDirecto, pinCorrecto) {
     }
 }
 
-// PARA EL CLIENTE: CAMBIAR PRIVACIDAD DESDE LA PORTADA
 async function alternarPrivacidadGlobal(estadoActual) {
     const nuevoEstado = !estadoActual;
     try {
         await db.collection("Albums").doc(albumId).update({
             "Datos_Generales.modo_publico": nuevoEstado
         });
-        alert(nuevoEstado ? "candado abierto: Cualquiera que escanee la libreta podrá verla sin PIN." : "Candado cerrado: Se pedirá PIN a los nuevos lectores.");
+        alert(nuevoEstado ? "CANDADO ABIERTO: Cualquiera podrá leer la libreta sin PIN." : "CANDADO CERRADO: Se requerirá el PIN original.");
         window.location.reload();
     } catch (e) {
-        alert("Error al actualizar. Necesitamos ajustar las reglas de tu base de datos.");
+        alert("Error de permisos en la base de datos.");
     }
 }
 
@@ -118,7 +110,7 @@ function renderizarFragmento() {
     const idMinuscula = capituloId.toLowerCase();
     
     // =========================================================================
-    // A) COLOFÓN (La firma de Etéreo en la contraportada)
+    // A) COLOFÓN (La firma y Bucle de Crecimiento)
     // =========================================================================
     if (idMinuscula === 'colofon') {
         tituloCapitulo.style.display = 'none'; 
@@ -130,18 +122,19 @@ function renderizarFragmento() {
                 <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 24px; color: #A39171;">Etéreo</h2>
                 <div style="width: 30px; height: 1px; background: #A39171; margin: 15px auto;"></div>
                 <p style="font-size: 13px; line-height: 1.8; color: #666;">
-                    Esta libreta fue encuadernada a mano y ensamblada con tecnología de memoria activa en Guadalajara, Jalisco.<br><br>
+                    Esta pieza artesanal fue ensamblada a mano integrando tecnología de memoria activa.<br><br>
                     Un puente entre lo táctil y lo eterno.
                 </p>
+                <a href="https://etereomx.com" target="_blank" class="btn-colofon">Descubre Nuestro Taller</a>
             </div>
         `;
-        document.querySelector('.phygital-prompt').style.display = 'none';
+        globalPrompt.style.display = 'none';
         contentSection.classList.add('active');
         return;
     }
 
     // =========================================================================
-    // B) PORTADA (Prefacio y Ajustes del Cliente)
+    // B) PORTADA (Prefacio y Puente de Acción)
     // =========================================================================
     if (idMinuscula === 'portada') {
         tituloCapitulo.style.display = 'none'; 
@@ -151,26 +144,34 @@ function renderizarFragmento() {
         const datosCapitulo = (datosAlbum.Capitulos && datosAlbum.Capitulos[capituloId]) ? datosAlbum.Capitulos[capituloId] : {};
         const tituloAlbum = datosAlbum.Datos_Generales.titulo || "Memorias en Papel y Éter";
         const mensajePortada = datosCapitulo.valor || "Este libro resguarda fragmentos de luz, sonido y palabras.";
-        
         const esPublico = datosAlbum.Datos_Generales.modo_publico === true;
-        const textoPrivacidad = esPublico ? "Bloquear Libreta (Requerir PIN)" : "Abrir Libreta (Quitar PIN para todos)";
+        
+        // Párrafos en cascada para la portada también
+        const parrafos = mensajePortada.split('\n').filter(p => p.trim() !== '');
+        let htmlMensaje = '';
+        parrafos.forEach((p, i) => {
+            const claseAdicional = i === 0 ? 'carta-text' : '';
+            htmlMensaje += `<p class="carta-parrafo ${claseAdicional}" style="animation-delay: ${i * 0.4}s; font-family: 'Cormorant Garamond', serif; font-size: 16px; text-align: center;">${p}</p>`;
+        });
 
         renderArea.innerHTML = `
             <div style="text-align: center; padding: 10px 0;">
                 <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 26px; color: #A39171; font-style: italic;">${tituloAlbum}</h2>
                 <div style="width: 40px; height: 1px; background: #A39171; margin: 20px auto;"></div>
-                <p class="carta-text" style="font-size: 16px; text-align: center; margin-bottom: 35px;">
-                    ${mensajePortada.replace(/\n/g, '<br>')}
-                </p>
+                
+                <div style="margin-bottom: 35px;">${htmlMensaje}</div>
                 
                 <div class="privacy-toggle">
                     <span>Ajustes del Propietario</span>
-                    <button class="toggle-btn" onclick="alternarPrivacidadGlobal(${esPublico})">${textoPrivacidad}</button>
+                    <button class="toggle-btn" onclick="alternarPrivacidadGlobal(${esPublico})">
+                        ${esPublico ? "Bloquear Libreta (Requerir PIN)" : "Abrir Libreta (Quitar PIN para todos)"}
+                    </button>
                 </div>
             </div>
         `;
         
-        document.querySelector('.phygital-prompt').style.display = 'none';
+        globalPrompt.style.display = 'flex';
+        promptText.innerText = "Abre la libreta y acerca tu dispositivo a la primera página";
         contentSection.classList.add('active');
         return; 
     }
@@ -182,12 +183,12 @@ function renderizarFragmento() {
     
     tituloCapitulo.style.display = 'block'; 
     subtituloCapitulo.style.display = 'block';
-    document.querySelector('.phygital-prompt').style.display = 'flex';
+    globalPrompt.style.display = 'flex';
+    promptText.innerText = "Acerca tu dispositivo al siguiente punto";
 
     tituloCapitulo.innerText = datosCapitulo.titulo || `Capítulo ${capituloId}`;
     subtituloCapitulo.innerText = `Fragmento ${capituloId}`;
     
-    // Metadatos de Tiempo y Espacio
     if (datosCapitulo.fecha || datosCapitulo.ubicacion) {
         const metadatos = [datosCapitulo.ubicacion, datosCapitulo.fecha].filter(Boolean).join(" — ");
         metadataContainer.innerHTML = `<div class="metadata-line">${metadatos}</div>`;
@@ -197,28 +198,79 @@ function renderizarFragmento() {
     
     switch (datosCapitulo.tipo_contenido) {
         case 'carta':
-            renderArea.innerHTML = `<div class="carta-text">${datosCapitulo.valor.replace(/\n/g, '<br>')}</div>`;
+            const parrafos = datosCapitulo.valor.split('\n').filter(p => p.trim() !== '');
+            let htmlCarta = '';
+            parrafos.forEach((p, index) => {
+                const delay = index * 0.4;
+                const claseAdicional = index === 0 ? 'carta-text' : '';
+                htmlCarta += `<p class="carta-parrafo ${claseAdicional}" style="animation-delay: ${delay}s; font-family: 'Cormorant Garamond', serif; font-size: 19px; line-height: 1.8; text-align: justify; color: #333;">${p}</p>`;
+            });
+            renderArea.innerHTML = htmlCarta;
             break;
+
         case 'spotify':
             let link = datosCapitulo.valor;
             const match = link.match(/(?:track|album|playlist|episode)\/([a-zA-Z0-9]+)/);
             if (match) link = `https://open.spotify.com/embed/track/${match[1]}?utm_source=generator`;
-            renderArea.innerHTML = `<iframe src="${link}" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius: 12px;"></iframe>`;
+            renderArea.innerHTML = `<iframe src="${link}" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);"></iframe>`;
             break;
+
         case 'imagen':
-            renderArea.innerHTML = `<div style="padding: 10px; background: #FFF; border-radius: 6px; border: 1px solid #EAEAEA; box-shadow: 0 10px 20px rgba(0,0,0,0.05);"><img src="${datosCapitulo.valor}" style="width: 100%; border-radius: 4px; display: block; object-fit: cover;"></div>`;
+            renderArea.innerHTML = `
+                <div class="foto-polaroid">
+                    <img src="${datosCapitulo.valor}" alt="Memoria visual">
+                </div>`;
             break;
+
         case 'audio':
             renderArea.innerHTML = `
-                <div style="background: #1A1A1A; padding: 25px 20px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 15px;">
-                    <div style="display: flex; align-items: center; gap: 10px; justify-content: center;">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM10 16.5V7.5L16 12L10 16.5Z" fill="#A39171"/>
-                        </svg>
-                        <span style="color: #A39171; font-family: 'Montserrat'; font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;">Cápsula de Voz</span>
+                <div style="background: #FDFCFB; border: 1px solid #A39171; padding: 25px 20px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 15px; box-shadow: 0 10px 20px rgba(163, 145, 113, 0.05);">
+                    <div style="color: #A39171; font-family: 'Montserrat'; font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;">Cápsula de Voz</div>
+                    
+                    <button id="custom-play-btn" style="width: 50px; height: 50px; border-radius: 50%; background: #A39171; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(163, 145, 113, 0.3);">
+                        <svg id="icon-play" width="16" height="16" viewBox="0 0 24 24" fill="#FFF"><path d="M8 5V19L19 12L8 5Z"/></svg>
+                        <svg id="icon-pause" width="16" height="16" viewBox="0 0 24 24" fill="#FFF" style="display: none;"><path d="M6 19H10V5H6V19ZM14 5V19H18V5H14Z"/></svg>
+                    </button>
+                    
+                    <div id="audio-progress-bar" style="width: 80%; height: 2px; background: #EAEAEA; border-radius: 2px; overflow: hidden; margin-top: 5px;">
+                        <div id="audio-progress" style="width: 0%; height: 100%; background: #A39171; transition: width 0.1s linear;"></div>
                     </div>
-                    <audio controls style="width: 100%; height: 40px; outline: none; border-radius: 30px;" controlsList="nodownload"><source src="${datosCapitulo.valor}" type="audio/mpeg"></audio>
+                    <audio id="hidden-audio" src="${datosCapitulo.valor}"></audio>
                 </div>`;
+
+            setTimeout(() => {
+                const audioEl = document.getElementById('hidden-audio');
+                const playBtn = document.getElementById('custom-play-btn');
+                const iconPlay = document.getElementById('icon-play');
+                const iconPause = document.getElementById('icon-pause');
+                const progressBar = document.getElementById('audio-progress');
+
+                playBtn.onclick = () => {
+                    if (audioEl.paused) {
+                        audioEl.play();
+                        iconPlay.style.display = 'none';
+                        iconPause.style.display = 'block';
+                        playBtn.style.transform = 'scale(1.05)';
+                        if(navigator.vibrate) navigator.vibrate(30);
+                    } else {
+                        audioEl.pause();
+                        iconPlay.style.display = 'block';
+                        iconPause.style.display = 'none';
+                        playBtn.style.transform = 'scale(1)';
+                    }
+                };
+
+                audioEl.ontimeupdate = () => {
+                    const porcentaje = (audioEl.currentTime / audioEl.duration) * 100;
+                    progressBar.style.width = `${porcentaje}%`;
+                };
+
+                audioEl.onended = () => {
+                    iconPlay.style.display = 'block';
+                    iconPause.style.display = 'none';
+                    progressBar.style.width = '0%';
+                };
+            }, 100);
             break;
     }
 
