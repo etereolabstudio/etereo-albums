@@ -223,6 +223,9 @@ function renderizarFragmento() {
             break;
 
         case 'audio':
+            // 1. Limpiamos la URL de cualquier espacio o salto de línea invisible
+            const urlAudio = datosCapitulo.valor.trim();
+
             renderArea.innerHTML = `
                 <div style="background: #FDFCFB; border: 1px solid #A39171; padding: 25px 20px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 15px; box-shadow: 0 10px 20px rgba(163, 145, 113, 0.05);">
                     <div style="color: #A39171; font-family: 'Montserrat'; font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;">Cápsula de Voz</div>
@@ -235,7 +238,11 @@ function renderizarFragmento() {
                     <div id="audio-progress-bar" style="width: 80%; height: 2px; background: #EAEAEA; border-radius: 2px; overflow: hidden; margin-top: 5px;">
                         <div id="audio-progress" style="width: 0%; height: 100%; background: #A39171; transition: width 0.1s linear;"></div>
                     </div>
-                    <audio id="hidden-audio" src="${datosCapitulo.valor}"></audio>
+                    
+                    <!-- 2. Forzamos la carga (preload) e incluimos el tag crossorigin -->
+                    <audio id="hidden-audio" preload="auto" crossorigin="anonymous">
+                        <source src="${urlAudio}">
+                    </audio>
                 </div>`;
 
             setTimeout(() => {
@@ -245,13 +252,28 @@ function renderizarFragmento() {
                 const iconPause = document.getElementById('icon-pause');
                 const progressBar = document.getElementById('audio-progress');
 
+                // 3. Empujamos al navegador a leer el archivo antes de que el usuario haga clic
+                audioEl.load();
+
                 playBtn.onclick = () => {
                     if (audioEl.paused) {
-                        audioEl.play();
-                        iconPlay.style.display = 'none';
-                        iconPause.style.display = 'block';
-                        playBtn.style.transform = 'scale(1.05)';
-                        if(navigator.vibrate) navigator.vibrate(30);
+                        // 4. Manejo de la "Promesa" de reproducción
+                        const playPromise = audioEl.play();
+                        
+                        if (playPromise !== undefined) {
+                            playPromise.then(() => {
+                                // ¡Éxito! El audio suena
+                                iconPlay.style.display = 'none';
+                                iconPause.style.display = 'block';
+                                playBtn.style.transform = 'scale(1.05)';
+                                if(navigator.vibrate) navigator.vibrate(30);
+                            }).catch(error => {
+                                // Si el internet es lento o iOS lo bloquea temporalmente
+                                console.error("El navegador pausó la carga:", error);
+                                alert("Cargando el éter... toca reproducir nuevamente.");
+                                audioEl.load(); 
+                            });
+                        }
                     } else {
                         audioEl.pause();
                         iconPlay.style.display = 'block';
@@ -260,6 +282,22 @@ function renderizarFragmento() {
                     }
                 };
 
+                audioEl.ontimeupdate = () => {
+                    // 5. Evitamos errores si la duración aún es "NaN" (Not a Number)
+                    if (!isNaN(audioEl.duration) && audioEl.duration > 0) {
+                        const porcentaje = (audioEl.currentTime / audioEl.duration) * 100;
+                        progressBar.style.width = `${porcentaje}%`;
+                    }
+                };
+
+                audioEl.onended = () => {
+                    iconPlay.style.display = 'block';
+                    iconPause.style.display = 'none';
+                    progressBar.style.width = '0%';
+                    playBtn.style.transform = 'scale(1)';
+                };
+            }, 100);
+            break;
                 audioEl.ontimeupdate = () => {
                     const porcentaje = (audioEl.currentTime / audioEl.duration) * 100;
                     progressBar.style.width = `${porcentaje}%`;
