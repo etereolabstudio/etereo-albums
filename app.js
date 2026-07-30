@@ -190,26 +190,77 @@ function renderizarFragmento() {
     else { metadataContainer.innerHTML = ''; }
 
     // ==========================================
-    // LÓGICA DE LA CÁPSULA DEL TIEMPO
+    // LÓGICA DE LA CÁPSULA DEL TIEMPO (CUENTA REGRESIVA)
     // ==========================================
     if (datosCapitulo.fecha_desbloqueo) {
-        // Se añade 'T00:00:00' para evitar desfases de zona horaria, comparando siempre con el inicio del día local.
-        const fechaDesbloqueo = new Date(datosCapitulo.fecha_desbloqueo + 'T00:00:00');
-        const hoy = new Date();
-        // Solo importa la fecha, no la hora exacta para desbloquear
-        hoy.setHours(0,0,0,0); 
+        // Se añade 'T00:00:00' para normalizar y evitar desfases horarios
+        const fechaDesbloqueo = new Date(datosCapitulo.fecha_desbloqueo + 'T00:00:00').getTime();
+        const ahora = new Date().getTime();
 
-        if (hoy < fechaDesbloqueo) {
+        if (ahora < fechaDesbloqueo) {
+            // Renderizamos la estructura base del reloj
             renderArea.innerHTML = `
                 <div style="text-align: center; padding: 40px 20px; background: #FDFCFB; border: 1px dashed #A39171; border-radius: 12px; margin-top: 20px;">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="#A39171" style="margin-bottom: 15px;"><path d="M12 17C13.1 17 14 16.1 14 15C14 13.9 13.1 13 12 13C10.9 13 10 13.9 10 15C10 16.1 10.9 17 12 17ZM18 8H17V6C17 3.24 14.76 1 12 1C9.24 1 7 3.24 7 6V8H6C4.9 8 4 8.9 4 10V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V10C20 8.9 19.1 8 18 8ZM8.9 6C8.9 4.29 10.29 2.9 12 2.9C13.71 2.9 15.1 4.29 15.1 6V8H8.9V6ZM18 20H6V10H18V20Z"/></svg>
                     <h3 style="font-family: 'Cormorant Garamond', serif; color: #A39171; font-size: 22px; margin: 0 0 10px 0;">Memoria Sellada</h3>
-                    <p style="font-size: 13px; color: #666; line-height: 1.6;">Este fragmento del tiempo aún no está listo para ser revelado.<br>Vuelve a escanear esta página el:</p>
-                    <p style="font-weight: 700; color: #1A1A1A; margin-top: 10px; font-size: 14px; text-transform: uppercase;">${formatearFecha(datosCapitulo.fecha_desbloqueo)}</p>
+                    <p style="font-size: 13px; color: #666; line-height: 1.6;">Este fragmento del tiempo aún no está listo para ser revelado.</p>
+                    
+                    <div id="reloj-arena" style="display: flex; justify-content: center; gap: 15px; margin-top: 25px; font-family: 'Montserrat', sans-serif;">
+                        <div style="text-align: center;">
+                            <div id="tiempo-dias" style="font-size: 28px; font-weight: 700; color: #1A1A1A;">00</div>
+                            <div style="font-size: 9px; text-transform: uppercase; color: #888; letter-spacing: 1px;">Días</div>
+                        </div>
+                        <div style="font-size: 24px; color: #A39171; font-weight: 300;">:</div>
+                        <div style="text-align: center;">
+                            <div id="tiempo-horas" style="font-size: 28px; font-weight: 700; color: #1A1A1A;">00</div>
+                            <div style="font-size: 9px; text-transform: uppercase; color: #888; letter-spacing: 1px;">Horas</div>
+                        </div>
+                        <div style="font-size: 24px; color: #A39171; font-weight: 300;">:</div>
+                        <div style="text-align: center;">
+                            <div id="tiempo-minutos" style="font-size: 28px; font-weight: 700; color: #1A1A1A;">00</div>
+                            <div style="font-size: 9px; text-transform: uppercase; color: #888; letter-spacing: 1px;">Min</div>
+                        </div>
+                        <div style="font-size: 24px; color: #A39171; font-weight: 300;">:</div>
+                        <div style="text-align: center;">
+                            <div id="tiempo-segundos" style="font-size: 28px; font-weight: 700; color: #A39171;">00</div>
+                            <div style="font-size: 9px; text-transform: uppercase; color: #A39171; letter-spacing: 1px;">Seg</div>
+                        </div>
+                    </div>
                 </div>
             `;
+            
             contentSection.classList.add('active');
-            return; // Detiene la ejecución, protegiendo el contenido real.
+
+            // MOTOR DEL RELOJ DINÁMICO
+            const actualizarReloj = setInterval(() => {
+                const tiempoActual = new Date().getTime();
+                const distancia = fechaDesbloqueo - tiempoActual;
+
+                if (distancia < 0) {
+                    clearInterval(actualizarReloj);
+                    // Si el usuario está viendo la pantalla justo cuando el tiempo llega a cero, recargamos la página mágicamente.
+                    document.getElementById('reloj-arena').innerHTML = "<span style='color: #2E7D32; font-weight: bold;'>¡El sello se ha roto! Abriendo memoria...</span>";
+                    setTimeout(() => window.location.reload(), 2000);
+                    return;
+                }
+
+                // Cálculos matemáticos de conversión de milisegundos
+                const dias = Math.floor(distancia / (1000 * 60 * 60 * 24));
+                const horas = Math.floor((distancia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutos = Math.floor((distancia % (1000 * 60 * 60)) / (1000 * 60));
+                const segundos = Math.floor((distancia % (1000 * 60)) / 1000);
+
+                // Función auxiliar para forzar dos dígitos (ej. "09" en vez de "9")
+                const dosDigitos = (num) => num < 10 ? '0' + num : num;
+
+                // Inyección en el HTML
+                document.getElementById('tiempo-dias').innerText = dosDigitos(dias);
+                document.getElementById('tiempo-horas').innerText = dosDigitos(horas);
+                document.getElementById('tiempo-minutos').innerText = dosDigitos(minutos);
+                document.getElementById('tiempo-segundos').innerText = dosDigitos(segundos);
+            }, 1000); // Se actualiza cada 1 segundo (1000ms)
+
+            return; // ¡IMPORTANTE! Esto detiene la ejecución para que NO se renderice el contenido real de abajo.
         }
     }
 
