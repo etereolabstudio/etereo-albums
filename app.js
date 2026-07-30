@@ -146,7 +146,6 @@ function renderizarFragmento() {
         const mensajePortada = datosCapitulo.valor || "Este libro resguarda fragmentos de luz, sonido y palabras.";
         const esPublico = datosAlbum.Datos_Generales.modo_publico === true;
         
-        // Párrafos en cascada para la portada también
         const parrafos = mensajePortada.split('\n').filter(p => p.trim() !== '');
         let htmlMensaje = '';
         parrafos.forEach((p, i) => {
@@ -295,18 +294,6 @@ function renderizarFragmento() {
                     iconPause.style.display = 'none';
                     progressBar.style.width = '0%';
                     playBtn.style.transform = 'scale(1)';
-                };
-            }, 100);
-            break;
-                audioEl.ontimeupdate = () => {
-                    const porcentaje = (audioEl.currentTime / audioEl.duration) * 100;
-                    progressBar.style.width = `${porcentaje}%`;
-                };
-
-                audioEl.onended = () => {
-                    iconPlay.style.display = 'block';
-                    iconPause.style.display = 'none';
-                    progressBar.style.width = '0%';
                 };
             }, 100);
             break;
