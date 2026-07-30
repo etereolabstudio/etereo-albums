@@ -21,21 +21,13 @@ const capituloId = params.get('cap');
 let datosAlbum = null;
 let wakeLock = null;
 
-// CONTROL DE HARDWARE: Mantener la pantalla encendida
 async function mantenerPantallaActiva() {
-    try {
-        if ('wakeLock' in navigator) {
-            wakeLock = await navigator.wakeLock.request('screen');
-        }
-    } catch (err) {
-        console.log("Wake Lock no soportado.");
-    }
+    try { if ('wakeLock' in navigator) { wakeLock = await navigator.wakeLock.request('screen'); } } 
+    catch (err) { console.log("Wake Lock no soportado."); }
 }
 
 document.addEventListener('visibilitychange', async () => {
-    if (wakeLock !== null && document.visibilityState === 'visible') {
-        mantenerPantallaActiva();
-    }
+    if (wakeLock !== null && document.visibilityState === 'visible') { mantenerPantallaActiva(); }
 });
 
 async function iniciar() {
@@ -75,7 +67,6 @@ function prepararSeguridad() {
         document.getElementById('pin-input').style.display = 'none';
         document.getElementById('pin-instruction').innerText = "Tu conexión con este fragmento está establecida.";
         btnDesbloquear.innerText = "Leer Memoria";
-        
         btnDesbloquear.onclick = () => desvelarMagia(true, pinCorrecto);
     } else {
         btnDesbloquear.onclick = () => desvelarMagia(false, pinCorrecto);
@@ -102,11 +93,11 @@ function desvelarMagia(saltoDirecto, pinCorrecto) {
         if (datosAlbum.Datos_Generales.soundtrack) {
             bgAudio.src = datosAlbum.Datos_Generales.soundtrack;
             bgAudio.volume = 0.4;
-            bgAudio.play().catch(e => console.log("Audio bloqueado por el navegador"));
+            bgAudio.play().catch(e => console.log("Audio auto-play bloqueado"));
         }
 
         pinSection.classList.remove('active');
-        mantenerPantallaActiva(); // Activamos el candado de pantalla
+        mantenerPantallaActiva(); 
         renderizarFragmento();
     }
 }
@@ -114,89 +105,61 @@ function desvelarMagia(saltoDirecto, pinCorrecto) {
 async function alternarPrivacidadGlobal(estadoActual) {
     const nuevoEstado = !estadoActual;
     try {
-        await db.collection("Albums").doc(albumId).update({
-            "Datos_Generales.modo_publico": nuevoEstado
-        });
+        await db.collection("Albums").doc(albumId).update({ "Datos_Generales.modo_publico": nuevoEstado });
         alert(nuevoEstado ? "CANDADO ABIERTO: Cualquiera podrá leer la libreta sin PIN." : "CANDADO CERRADO: Se requerirá el PIN original.");
         window.location.reload();
-    } catch (e) {
-        alert("Error de permisos en la base de datos.");
-    }
+    } catch (e) { alert("Error de permisos en la base de datos."); }
+}
+
+function formatearFecha(fechaString) {
+    const opciones = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(fechaString).toLocaleDateString('es-ES', opciones);
 }
 
 function renderizarFragmento() {
     const idMinuscula = capituloId.toLowerCase();
     
-    // =========================================================================
-    // A) COLOFÓN (La firma, Botón Etéreo y Botón de Compartir)
-    // =========================================================================
+    // A) COLOFÓN
     if (idMinuscula === 'colofon') {
-        tituloCapitulo.style.display = 'none'; 
-        subtituloCapitulo.style.display = 'none';
-        metadataContainer.innerHTML = '';
-        
+        tituloCapitulo.style.display = 'none'; subtituloCapitulo.style.display = 'none'; metadataContainer.innerHTML = '';
         renderArea.innerHTML = `
             <div style="text-align: center; padding: 20px 0;">
                 <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 24px; color: #A39171;">Etéreo</h2>
                 <div style="width: 30px; height: 1px; background: #A39171; margin: 15px auto;"></div>
-                <p style="font-size: 13px; line-height: 1.8; color: #666;">
-                    Esta pieza artesanal fue ensamblada a mano integrando tecnología de memoria activa.<br><br>
-                    Un puente entre lo táctil y lo eterno.
-                </p>
-                
+                <p style="font-size: 13px; line-height: 1.8; color: #666;">Esta pieza artesanal fue ensamblada a mano integrando tecnología de memoria activa.<br><br>Un puente entre lo táctil y lo eterno.</p>
                 <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 25px; align-items: center;">
-                    <a href="https://etereomx.com" target="_blank" class="btn-colofon" style="width: 80%; margin: 0; box-sizing: border-box;">Descubre Nuestro Taller</a>
-                    
-                    <button id="btn-share" style="background: transparent; border: none; color: #888; font-family: 'Montserrat'; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; padding: 10px;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08C17.24 16.08 16.56 16.38 16.04 16.85L8.91 12.7C8.96 12.47 9 12.24 9 12C9 11.76 8.96 11.53 8.91 11.3L15.96 7.19C16.5 7.69 17.21 8 18 8C19.66 8 21 6.66 21 5C21 3.34 19.66 2 18 2C16.34 2 15 3.34 15 5C15 5.24 15.04 5.47 15.09 5.7L8.04 9.81C7.5 9.31 6.79 9 6 9C4.34 9 3 10.34 3 12C3 13.66 4.34 15 6 15C6.79 15 7.5 14.69 8.04 14.19L15.16 18.34C15.11 18.55 15.08 18.77 15.08 19C15.08 20.66 16.42 22 18.08 22C19.74 22 21.08 20.66 21.08 19C21.08 17.34 19.74 16.08 18.08 16.08Z"/></svg>
-                        Compartir Magia
+                    <a href="https://etereomx.com" target="_blank" class="btn-colofon" style="width: 80%; padding: 12px; border: 1px solid #A39171; color: #A39171; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; border-radius: 4px;">Descubre Nuestro Taller</a>
+                    <button id="btn-share" style="background: transparent; border: none; color: #888; font-family: 'Montserrat'; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 10px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08C17.24 16.08 16.56 16.38 16.04 16.85L8.91 12.7C8.96 12.47 9 12.24 9 12C9 11.76 8.96 11.53 8.91 11.3L15.96 7.19C16.5 7.69 17.21 8 18 8C19.66 8 21 6.66 21 5C21 3.34 19.66 2 18 2C16.34 2 15 3.34 15 5C15 5.24 15.04 5.47 15.09 5.7L8.04 9.81C7.5 9.31 6.79 9 6 9C4.34 9 3 10.34 3 12C3 13.66 4.34 15 6 15C6.79 15 7.5 14.69 8.04 14.19L15.16 18.34C15.11 18.55 15.08 18.77 15.08 19C15.08 20.66 16.42 22 18.08 22C19.74 22 21.08 20.66 21.08 19C21.08 17.34 19.74 16.08 18.08 16.08Z"/></svg> Compartir Magia
                     </button>
                 </div>
             </div>
         `;
-        
         setTimeout(() => {
             const btnShare = document.getElementById('btn-share');
             if (btnShare) {
                 btnShare.onclick = async () => {
                     if (navigator.share) {
-                        try {
-                            await navigator.share({
-                                title: 'Etéreo | Taller de Memorias',
-                                text: 'Descubre la magia de las libretas Etéreo que conectan el papel con tecnología NFC.',
-                                url: 'https://etereomx.com'
-                            });
-                        } catch (err) { console.log('Share cancelado'); }
-                    } else {
-                        alert("Copia este enlace para compartir: https://etereomx.com");
+                        try { await navigator.share({ title: 'Etéreo', text: 'Descubre las libretas con memorias NFC.', url: 'https://etereomx.com' }); } catch (err) {}
                     }
                 };
             }
         }, 100);
-
-        globalPrompt.style.display = 'none';
-        contentSection.classList.add('active');
-        return;
+        globalPrompt.style.display = 'none'; contentSection.classList.add('active'); return;
     }
 
-    // =========================================================================
     // B) PORTADA
-    // =========================================================================
     if (idMinuscula === 'portada') {
-        tituloCapitulo.style.display = 'none'; 
-        subtituloCapitulo.style.display = 'none';
-        metadataContainer.innerHTML = '';
-        
+        tituloCapitulo.style.display = 'none'; subtituloCapitulo.style.display = 'none'; metadataContainer.innerHTML = '';
         const datosCapitulo = (datosAlbum.Capitulos && datosAlbum.Capitulos[capituloId]) ? datosAlbum.Capitulos[capituloId] : {};
         const tituloAlbum = datosAlbum.Datos_Generales.titulo || "Memorias en Papel y Éter";
         const mensajePortada = datosCapitulo.valor || "Este libro resguarda fragmentos de luz, sonido y palabras.";
         const esPublico = datosAlbum.Datos_Generales.modo_publico === true;
         
-        const parrafos = mensajePortada.split('\n').filter(p => p.trim() !== '');
         let htmlMensaje = '';
-        parrafos.forEach((p, i) => {
-            const claseAdicional = i === 0 ? 'carta-text' : '';
-            htmlMensaje += `<p class="carta-parrafo ${claseAdicional}" style="animation-delay: ${i * 0.4}s; font-family: 'Cormorant Garamond', serif; font-size: 16px; text-align: center;">${p}</p>`;
+        mensajePortada.split('\n').filter(p => p.trim() !== '').forEach((p, i) => {
+            const cls = i === 0 ? 'carta-text' : '';
+            htmlMensaje += `<p class="carta-parrafo ${cls}" style="animation-delay: ${i * 0.4}s; font-family: 'Cormorant Garamond', serif; font-size: 16px; text-align: center;">${p}</p>`;
         });
 
         renderArea.innerHTML = `
@@ -204,51 +167,99 @@ function renderizarFragmento() {
                 <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 26px; color: #A39171; font-style: italic;">${tituloAlbum}</h2>
                 <div style="width: 40px; height: 1px; background: #A39171; margin: 20px auto;"></div>
                 <div style="margin-bottom: 35px;">${htmlMensaje}</div>
-                <div class="privacy-toggle">
-                    <span>Ajustes del Propietario</span>
-                    <button class="toggle-btn" onclick="alternarPrivacidadGlobal(${esPublico})">
-                        ${esPublico ? "Bloquear Libreta (Requerir PIN)" : "Abrir Libreta (Quitar PIN para todos)"}
+                <div class="privacy-toggle" style="margin-top: 30px; border-top: 1px dashed #DCDCDC; padding-top: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                    <span style="font-size: 12px; color: #666;">Ajustes del Propietario</span>
+                    <button onclick="alternarPrivacidadGlobal(${esPublico})" style="background: transparent; border: 1px solid #A39171; color: #A39171; padding: 8px 15px; font-size: 10px; cursor: pointer;">
+                        ${esPublico ? "Bloquear Libreta (Requerir PIN)" : "Abrir Libreta (Quitar PIN)"}
                     </button>
                 </div>
             </div>
         `;
-        
-        globalPrompt.style.display = 'flex';
-        promptText.innerText = "Abre la libreta y acerca tu dispositivo a la primera página";
-        contentSection.classList.add('active');
-        return; 
+        globalPrompt.style.display = 'flex'; promptText.innerText = "Abre la libreta y acerca tu dispositivo a la primera página";
+        contentSection.classList.add('active'); return; 
     }
 
-    // =========================================================================
-    // C) CAPÍTULOS INTERNOS NORMALES
-    // =========================================================================
+    // C) CAPÍTULOS NORMALES
     const datosCapitulo = datosAlbum.Capitulos[capituloId];
-    
-    tituloCapitulo.style.display = 'block'; 
-    subtituloCapitulo.style.display = 'block';
-    globalPrompt.style.display = 'flex';
+    tituloCapitulo.style.display = 'block'; subtituloCapitulo.style.display = 'block'; globalPrompt.style.display = 'flex';
     promptText.innerText = "Acerca tu dispositivo al siguiente punto";
-
     tituloCapitulo.innerText = datosCapitulo.titulo || `Capítulo ${capituloId}`;
     subtituloCapitulo.innerText = `Fragmento ${capituloId}`;
     
-    if (datosCapitulo.fecha || datosCapitulo.ubicacion) {
-        const metadatos = [datosCapitulo.ubicacion, datosCapitulo.fecha].filter(Boolean).join(" — ");
-        metadataContainer.innerHTML = `<div class="metadata-line">${metadatos}</div>`;
-    } else {
-        metadataContainer.innerHTML = '';
+    if (datosCapitulo.ubicacion) { metadataContainer.innerHTML = `<div class="metadata-line" style="font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 14px; color: #8B8B8B; margin-bottom: 20px; border-bottom: 1px solid #F0F0F0; padding-bottom: 10px; display: inline-block;">${datosCapitulo.ubicacion}</div>`; } 
+    else { metadataContainer.innerHTML = ''; }
+
+    // ==========================================
+    // LÓGICA DE LA CÁPSULA DEL TIEMPO
+    // ==========================================
+    if (datosCapitulo.fecha_desbloqueo) {
+        // Se añade 'T00:00:00' para evitar desfases de zona horaria, comparando siempre con el inicio del día local.
+        const fechaDesbloqueo = new Date(datosCapitulo.fecha_desbloqueo + 'T00:00:00');
+        const hoy = new Date();
+        // Solo importa la fecha, no la hora exacta para desbloquear
+        hoy.setHours(0,0,0,0); 
+
+        if (hoy < fechaDesbloqueo) {
+            renderArea.innerHTML = `
+                <div style="text-align: center; padding: 40px 20px; background: #FDFCFB; border: 1px dashed #A39171; border-radius: 12px; margin-top: 20px;">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="#A39171" style="margin-bottom: 15px;"><path d="M12 17C13.1 17 14 16.1 14 15C14 13.9 13.1 13 12 13C10.9 13 10 13.9 10 15C10 16.1 10.9 17 12 17ZM18 8H17V6C17 3.24 14.76 1 12 1C9.24 1 7 3.24 7 6V8H6C4.9 8 4 8.9 4 10V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V10C20 8.9 19.1 8 18 8ZM8.9 6C8.9 4.29 10.29 2.9 12 2.9C13.71 2.9 15.1 4.29 15.1 6V8H8.9V6ZM18 20H6V10H18V20Z"/></svg>
+                    <h3 style="font-family: 'Cormorant Garamond', serif; color: #A39171; font-size: 22px; margin: 0 0 10px 0;">Memoria Sellada</h3>
+                    <p style="font-size: 13px; color: #666; line-height: 1.6;">Este fragmento del tiempo aún no está listo para ser revelado.<br>Vuelve a escanear esta página el:</p>
+                    <p style="font-weight: 700; color: #1A1A1A; margin-top: 10px; font-size: 14px; text-transform: uppercase;">${formatearFecha(datosCapitulo.fecha_desbloqueo)}</p>
+                </div>
+            `;
+            contentSection.classList.add('active');
+            return; // Detiene la ejecución, protegiendo el contenido real.
+        }
     }
-    
+
+    // RENDERIZADO DEL CONTENIDO
     switch (datosCapitulo.tipo_contenido) {
         case 'carta':
-            const parrafos = datosCapitulo.valor.split('\n').filter(p => p.trim() !== '');
             let htmlCarta = '';
-            parrafos.forEach((p, index) => {
-                const delay = index * 0.4;
-                const claseAdicional = index === 0 ? 'carta-text' : '';
-                htmlCarta += `<p class="carta-parrafo ${claseAdicional}" style="animation-delay: ${delay}s; font-family: 'Cormorant Garamond', serif; font-size: 19px; line-height: 1.8; text-align: justify; color: #333;">${p}</p>`;
+            datosCapitulo.valor.split('\n').filter(p => p.trim() !== '').forEach((p, index) => {
+                const cls = index === 0 ? 'carta-text' : '';
+                htmlCarta += `<p class="carta-parrafo ${cls}" style="animation-delay: ${index * 0.4}s; font-family: 'Cormorant Garamond', serif; font-size: 19px; line-height: 1.8; text-align: justify; color: #333;">${p}</p>`;
             });
-            renderArea.innerHTML = htmlCarta;
+
+            // ==========================================
+            // LÓGICA DE TINTA INVISIBLE (Touch to reveal)
+            // ==========================================
+            if (datosCapitulo.tinta_invisible) {
+                renderArea.innerHTML = `
+                    <div style="text-align: center; margin-bottom: 20px; font-size: 11px; color: #A39171; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 11.24V7.5C9 6.12 10.12 5 11.5 5C12.88 5 14 6.12 14 7.5V13.8L15.36 13.52C15.91 13.41 16.48 13.56 16.92 13.91L20 16.41L15.22 22.38C14.77 22.95 14.07 23.29 13.33 23.29H9.42C8.01 23.29 6.81 22.31 6.54 20.93L5.43 15.38C5.23 14.39 5.86 13.43 6.85 13.23C7.21 13.16 7.58 13.2 7.9 13.34L9 13.84V11.24ZM7.44 11.45L6.46 10.96C4.85 10.15 3.99 8.28 4.41 6.46C4.79 4.86 6.13 3.68 7.76 3.42C9.8 3.1 11.66 4.46 12.08 6.36L12.19 6.84L12.3 6.36C12.72 4.46 14.58 3.1 16.62 3.42C18.25 3.68 19.59 4.86 19.97 6.46C20.39 8.28 19.53 10.15 17.92 10.96L16.94 11.45V7.5C16.94 4.5 14.5 2 11.5 2C8.5 2 6.06 4.5 6.06 7.5V11.24L7.44 11.45Z"/></svg>
+                        Mantén presionado para leer
+                    </div>
+                    <div id="carta-confidencial" style="filter: blur(10px); transition: filter 0.8s ease; opacity: 0.5; user-select: none;">
+                        ${htmlCarta}
+                    </div>
+                `;
+                
+                setTimeout(() => {
+                    const cartaEl = document.getElementById('carta-confidencial');
+                    
+                    const revelar = () => { 
+                        cartaEl.style.filter = 'blur(0px)'; 
+                        cartaEl.style.opacity = '1'; 
+                        if(navigator.vibrate) navigator.vibrate(20); 
+                    };
+                    const ocultar = () => { 
+                        cartaEl.style.filter = 'blur(10px)'; 
+                        cartaEl.style.opacity = '0.5'; 
+                    };
+
+                    // Eventos para móvil (Touch) y escritorio (Mouse)
+                    cartaEl.addEventListener('touchstart', revelar);
+                    cartaEl.addEventListener('touchend', ocultar);
+                    cartaEl.addEventListener('touchcancel', ocultar);
+                    cartaEl.addEventListener('mousedown', revelar);
+                    cartaEl.addEventListener('mouseup', ocultar);
+                    cartaEl.addEventListener('mouseleave', ocultar);
+                }, 100);
+            } else {
+                renderArea.innerHTML = htmlCarta;
+            }
             break;
 
         case 'spotify':
@@ -259,31 +270,24 @@ function renderizarFragmento() {
             break;
 
         case 'imagen':
-            renderArea.innerHTML = `
-                <div class="foto-polaroid">
-                    <img src="${datosCapitulo.valor}" alt="Memoria visual">
-                </div>`;
+            renderArea.innerHTML = `<div class="foto-polaroid" style="background: #FFF; padding: 12px 12px 45px 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.08); transform: rotate(-1.5deg); border-radius: 3px; margin: 20px auto; width: 90%;"><img src="${datosCapitulo.valor}" alt="Memoria visual" style="width: 100%; border-radius: 2px;"></div>`;
             break;
 
         case 'audio':
             let urlAudio = datosCapitulo.valor.trim();
-            if (urlAudio.includes("cloudinary.com")) {
-                urlAudio = urlAudio.replace(/\.[^/.]+$/, ".mp3"); // Transcodificación al vuelo a MP3
-            }
+            if (urlAudio.includes("cloudinary.com")) urlAudio = urlAudio.replace(/\.[^/.]+$/, ".mp3");
 
             renderArea.innerHTML = `
-                <div style="background: #FDFCFB; border: 1px solid #A39171; padding: 25px 20px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 15px; box-shadow: 0 10px 20px rgba(163, 145, 113, 0.05);">
+                <div style="background: #FDFCFB; border: 1px solid #A39171; padding: 25px 20px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 15px;">
                     <div style="color: #A39171; font-family: 'Montserrat'; font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;">Cápsula de Voz</div>
-                    <button id="custom-play-btn" style="width: 50px; height: 50px; border-radius: 50%; background: #A39171; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(163, 145, 113, 0.3);">
+                    <button id="custom-play-btn" style="width: 50px; height: 50px; border-radius: 50%; background: #A39171; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer;">
                         <svg id="icon-play" width="16" height="16" viewBox="0 0 24 24" fill="#FFF"><path d="M8 5V19L19 12L8 5Z"/></svg>
                         <svg id="icon-pause" width="16" height="16" viewBox="0 0 24 24" fill="#FFF" style="display: none;"><path d="M6 19H10V5H6V19ZM14 5V19H18V5H14Z"/></svg>
                     </button>
-                    <div id="audio-progress-bar" style="width: 80%; height: 2px; background: #EAEAEA; border-radius: 2px; overflow: hidden; margin-top: 5px;">
+                    <div id="audio-progress-bar" style="width: 80%; height: 2px; background: #EAEAEA; border-radius: 2px; margin-top: 5px;">
                         <div id="audio-progress" style="width: 0%; height: 100%; background: #A39171; transition: width 0.1s linear;"></div>
                     </div>
-                    <audio id="hidden-audio" preload="auto" crossorigin="anonymous">
-                        <source src="${urlAudio}">
-                    </audio>
+                    <audio id="hidden-audio" preload="auto" crossorigin="anonymous"><source src="${urlAudio}"></audio>
                 </div>`;
 
             setTimeout(() => {
@@ -300,40 +304,25 @@ function renderizarFragmento() {
                         const playPromise = audioEl.play();
                         if (playPromise !== undefined) {
                             playPromise.then(() => {
-                                iconPlay.style.display = 'none';
-                                iconPause.style.display = 'block';
-                                playBtn.style.transform = 'scale(1.05)';
+                                iconPlay.style.display = 'none'; iconPause.style.display = 'block';
                                 if(navigator.vibrate) navigator.vibrate(30);
-                            }).catch(error => {
-                                alert("Cargando el éter... toca reproducir nuevamente.");
-                                audioEl.load(); 
-                            });
+                            }).catch(error => { alert("Toca de nuevo para reproducir."); audioEl.load(); });
                         }
                     } else {
-                        audioEl.pause();
-                        iconPlay.style.display = 'block';
-                        iconPause.style.display = 'none';
-                        playBtn.style.transform = 'scale(1)';
+                        audioEl.pause(); iconPlay.style.display = 'block'; iconPause.style.display = 'none';
                     }
                 };
 
                 audioEl.ontimeupdate = () => {
                     if (!isNaN(audioEl.duration) && audioEl.duration > 0) {
-                        const porcentaje = (audioEl.currentTime / audioEl.duration) * 100;
-                        progressBar.style.width = `${porcentaje}%`;
+                        progressBar.style.width = `${(audioEl.currentTime / audioEl.duration) * 100}%`;
                     }
                 };
 
-                audioEl.onended = () => {
-                    iconPlay.style.display = 'block';
-                    iconPause.style.display = 'none';
-                    progressBar.style.width = '0%';
-                    playBtn.style.transform = 'scale(1)';
-                };
+                audioEl.onended = () => { iconPlay.style.display = 'block'; iconPause.style.display = 'none'; progressBar.style.width = '0%'; };
             }, 100);
             break;
     }
-
     contentSection.classList.add('active');
 }
 
