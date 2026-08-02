@@ -142,7 +142,6 @@ function desvelarMagia(saltoDirecto, pinCorrecto) {
     if (accesoConcedido) {
         if(navigator.vibrate && !saltoDirecto) navigator.vibrate([30, 50, 30]); 
         
-        // FADE IN DE AUDIO RESTAURADO
         if (datosAlbum.Datos_Generales.soundtrack && bgAudio.paused) {
             bgAudio.src = datosAlbum.Datos_Generales.soundtrack;
             bgAudio.volume = 0.0;
@@ -174,7 +173,7 @@ async function alternarPrivacidadGlobal(estadoActual) {
 function renderizarFragmento() {
     const idMinuscula = capituloId.toLowerCase();
     
-    // A) COLOFÓN RESTAURADO
+    // A) COLOFÓN
     if (idMinuscula === 'colofon') {
         tituloCapitulo.style.display = 'none'; subtituloCapitulo.style.display = 'none'; metadataContainer.innerHTML = '';
         renderArea.innerHTML = `
@@ -253,7 +252,7 @@ function renderizarFragmento() {
         metadataContainer.innerHTML = `<div class="metadata-line" style="font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 14px; color: #8B8B8B; margin-bottom: 20px; border-bottom: 1px solid #F0F0F0; padding-bottom: 10px; display: inline-block;">${datosCapitulo.ubicacion}</div>`; 
     } else { metadataContainer.innerHTML = ''; }
 
-    // --- EL RELOJ DE ARENA RESTAURADO ---
+    // --- RELOJ DE ARENA ---
     if (datosCapitulo.fecha_desbloqueo) {
         const fechaDesbloqueo = new Date(datosCapitulo.fecha_desbloqueo + 'T00:00:00').getTime();
         const ahora = new Date().getTime();
@@ -298,14 +297,32 @@ function renderizarFragmento() {
     // --- RENDERIZADO DEL CONTENIDO DE LA MEMORIA ---
     switch (datosCapitulo.tipo_contenido) {
         case 'carta':
+            // 1. Preparamos el HTML del texto
             let htmlCarta = '';
-            datosCapitulo.valor.split('\n').filter(p => p.trim() !== '').forEach((p, index) => {
+            const textoPlano = datosCapitulo.valor; // Guardamos el texto puro para el lector
+            textoPlano.split('\n').filter(p => p.trim() !== '').forEach((p, index) => {
                 const cls = index === 0 ? 'carta-text' : '';
                 htmlCarta += `<p class="carta-parrafo ${cls}" style="animation-delay: ${index * 0.4}s; font-family: 'Cormorant Garamond', serif; font-size: 19px; line-height: 1.8; text-align: justify; color: #333;">${p}</p>`;
             });
 
+            // 2. Interfaz del Lector Nativo
+            const uiLector = `
+                <div style="background: rgba(163, 145, 113, 0.05); border: 1px solid rgba(163, 145, 113, 0.2); padding: 15px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px;">
+                    <div style="text-align: left;">
+                        <div style="color: #A39171; font-family: 'Montserrat'; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;">Lector del Éter</div>
+                        <div style="color: #666; font-size: 12px; margin-top: 3px;">Escuchar este texto</div>
+                    </div>
+                    <button id="btn-leer-carta" style="width: 40px; height: 40px; border-radius: 50%; background: #A39171; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 5px 15px rgba(163, 145, 113, 0.3);">
+                        <svg id="ico-play-lector" width="14" height="14" viewBox="0 0 24 24" fill="#FFF"><path d="M8 5V19L19 12L8 5Z"/></svg>
+                        <svg id="ico-stop-lector" width="14" height="14" viewBox="0 0 24 24" fill="#FFF" style="display: none;"><path d="M6 6H18V18H6V6Z"/></svg>
+                    </button>
+                </div>
+            `;
+
+            // 3. Renderizado (Con o sin tinta invisible)
             if (datosCapitulo.tinta_invisible) {
                 renderArea.innerHTML = `
+                    ${uiLector}
                     <div style="text-align: center; margin-bottom: 20px; font-size: 11px; color: #A39171; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 8px;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 11.24V7.5C9 6.12 10.12 5 11.5 5C12.88 5 14 6.12 14 7.5V13.8L15.36 13.52C15.91 13.41 16.48 13.56 16.92 13.91L20 16.41L15.22 22.38C14.77 22.95 14.07 23.29 13.33 23.29H9.42C8.01 23.29 6.81 22.31 6.54 20.93L5.43 15.38C5.23 14.39 5.86 13.43 6.85 13.23C7.21 13.16 7.58 13.2 7.9 13.34L9 13.84V11.24ZM7.44 11.45L6.46 10.96C4.85 10.15 3.99 8.28 4.41 6.46C4.79 4.86 6.13 3.68 7.76 3.42C9.8 3.1 11.66 4.46 12.08 6.36L12.19 6.84L12.3 6.36C12.72 4.46 14.58 3.1 16.62 3.42C18.25 3.68 19.59 4.86 19.97 6.46C20.39 8.28 19.53 10.15 17.92 10.96L16.94 11.45V7.5C16.94 4.5 14.5 2 11.5 2C8.5 2 6.06 4.5 6.06 7.5V11.24L7.44 11.45Z"/></svg>
                         Mantén presionado para leer
@@ -314,11 +331,12 @@ function renderizarFragmento() {
                         ${htmlCarta}
                     </div>
                 `;
+                
+                // Lógica de Tinta Invisible
                 setTimeout(() => {
                     const cartaEl = document.getElementById('carta-confidencial');
                     const revelar = (e) => { e.preventDefault(); cartaEl.style.filter = 'blur(0px)'; cartaEl.style.opacity = '1'; if(navigator.vibrate) navigator.vibrate(20); };
                     const ocultar = (e) => { e.preventDefault(); cartaEl.style.filter = 'blur(10px)'; cartaEl.style.opacity = '0.5'; };
-
                     cartaEl.addEventListener('touchstart', revelar, {passive: false});
                     cartaEl.addEventListener('touchend', ocultar);
                     cartaEl.addEventListener('touchcancel', ocultar);
@@ -326,17 +344,60 @@ function renderizarFragmento() {
                     cartaEl.addEventListener('mouseup', ocultar);
                     cartaEl.addEventListener('mouseleave', ocultar);
                 }, 100);
+
             } else {
-                renderArea.innerHTML = htmlCarta;
+                renderArea.innerHTML = uiLector + htmlCarta;
             }
+
+            // 4. LÓGICA DEL MOTOR DE SÍNTESIS DE VOZ (Web Speech API)
+            setTimeout(() => {
+                const btnLector = document.getElementById('btn-leer-carta');
+                const icoPlay = document.getElementById('ico-play-lector');
+                const icoStop = document.getElementById('ico-stop-lector');
+                
+                if ('speechSynthesis' in window) {
+                    let locutor = new SpeechSynthesisUtterance(textoPlano);
+                    locutor.lang = 'es-MX'; 
+                    locutor.rate = 0.9;     
+                    locutor.pitch = 1;      
+
+                    locutor.onstart = () => {
+                        icoPlay.style.display = 'none';
+                        icoStop.style.display = 'block';
+                        if (!bgAudio.paused) bgAudio.volume = 0.15; 
+                    };
+
+                    locutor.onend = () => {
+                        icoPlay.style.display = 'block';
+                        icoStop.style.display = 'none';
+                        if (!bgAudio.paused) bgAudio.volume = 0.4; 
+                    };
+
+                    // Forzar limpieza si el usuario abandona la página a medio audio
+                    window.addEventListener('beforeunload', () => {
+                        speechSynthesis.cancel();
+                    });
+
+                    btnLector.onclick = () => {
+                        if (speechSynthesis.speaking) {
+                            speechSynthesis.cancel();
+                            icoPlay.style.display = 'block';
+                            icoStop.style.display = 'none';
+                            if (!bgAudio.paused) bgAudio.volume = 0.4;
+                        } else {
+                            speechSynthesis.speak(locutor);
+                        }
+                    };
+                } else {
+                    btnLector.style.display = 'none';
+                }
+            }, 100);
             break;
 
         case 'spotify':
-            // LOGICA MEJORADA: Soporta track, album y playlist sin romperse
             let link = datosCapitulo.valor;
             const match = link.match(/(?:track|album|playlist|episode)\/([a-zA-Z0-9]+)/);
             if (match) {
-                // Obtenemos el tipo (track/playlist) y el ID de la URL que pegó el cliente
                 const tipo = link.match(/(track|album|playlist|episode)/)[1];
                 link = `https://open.spotify.com/embed/${tipo}/${match[1]}?utm_source=generator`;
             }
@@ -349,7 +410,6 @@ function renderizarFragmento() {
 
         case 'audio':
             let urlAudio = datosCapitulo.valor.trim();
-            // LÓGICA DE CLOUDINARY: Reemplaza formato de video a .mp3 para garantizar compatibilidad
             if (urlAudio.includes("cloudinary.com")) urlAudio = urlAudio.replace(/\.[^/.]+$/, ".mp3");
 
             renderArea.innerHTML = `
@@ -380,11 +440,13 @@ function renderizarFragmento() {
                         if (playPromise !== undefined) {
                             playPromise.then(() => {
                                 iconPlay.style.display = 'none'; iconPause.style.display = 'block';
+                                if (!bgAudio.paused) bgAudio.volume = 0.15; // Ducking para el audio también
                                 if(navigator.vibrate) navigator.vibrate(20);
                             }).catch(error => { alert("Toca de nuevo para reproducir."); audioEl.load(); });
                         }
                     } else {
                         audioEl.pause(); iconPlay.style.display = 'block'; iconPause.style.display = 'none';
+                        if (!bgAudio.paused) bgAudio.volume = 0.4; // Restaurar ducking
                     }
                 };
 
@@ -396,6 +458,7 @@ function renderizarFragmento() {
 
                 audioEl.onended = () => { 
                     iconPlay.style.display = 'block'; iconPause.style.display = 'none'; progressBar.style.width = '0%'; 
+                    if (!bgAudio.paused) bgAudio.volume = 0.4;
                     if(navigator.vibrate) navigator.vibrate([10, 30, 10]); 
                 };
             }, 100);
