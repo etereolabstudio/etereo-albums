@@ -7,13 +7,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     
     <style>
-        /* 1. EL FONDO VIVO (Efecto de respiración sutil) */
+        /* FONDO Y ESTÉTICA GLOBAL */
         body { 
             font-family: 'Montserrat', sans-serif; 
             margin: 0; padding: 0; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; 
             color: #2B2B2B;
-            /* Gradiente animado */
             background: linear-gradient(120deg, #F9F8F6, #F2EFE9, #EBE6DC, #F9F8F6);
             background-size: 200% 200%;
             animation: etherealBreath 15s ease-in-out infinite;
@@ -25,7 +24,6 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Capa de textura de papel sobre el fondo vivo */
         body::before {
             content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
@@ -42,17 +40,15 @@
         
         h1 { font-family: 'Cormorant Garamond', serif; color: #A39171; font-size: 32px; margin-bottom: 5px; margin-top: 0; }
         
+        /* CONTROL DE PANTALLAS */
         #pin-section, #content-section { display: none; }
         .active { display: block !important; animation: fadeIn 0.8s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
         @keyframes fadeIn { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
         
-        /* ESTILOS DE TEXTO EN CASCADA Y LETRA CAPITULAR */
+        /* ELEMENTOS INTERACTIVOS (Polaroid y Textos) */
         .carta-parrafo { opacity: 0; transform: translateY(15px); animation: revelarTexto 0.8s forwards cubic-bezier(0.25, 0.8, 0.25, 1); }
         @keyframes revelarTexto { to { opacity: 1; transform: translateY(0); } }
         
-        .carta-text::first-letter { font-size: 3.5em; color: #A39171; float: left; margin-right: 4px; margin-top: -2px; padding-right: 2px; line-height: 0.85; font-weight: 600; font-style: italic; }
-
-        /* ESTILO POLAROID PARA IMÁGENES */
         .foto-polaroid {
             background: #FFF; padding: 12px 12px 45px 12px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.08), 0 5px 15px rgba(0,0,0,0.03);
@@ -63,32 +59,19 @@
         .foto-polaroid:hover { transform: rotate(1deg) scale(1.02); box-shadow: 0 25px 45px rgba(163, 145, 113, 0.15); }
         .foto-polaroid img { width: 100%; border-radius: 2px; display: block; pointer-events: none; }
 
-        input { padding: 12px; border: 1px solid #EAEAEA; border-radius: 6px; width: 100%; max-width: 250px; font-family: 'Montserrat'; text-align: center; font-size: 16px; margin-bottom: 10px; box-sizing: border-box; }
-        input:focus { border-color: #A39171; outline: none; }
+        /* UI FORMS Y BOTONES */
+        input { padding: 12px; border: 1px solid #EAEAEA; border-radius: 6px; width: 100%; max-width: 250px; font-family: 'Montserrat'; text-align: center; font-size: 16px; margin-bottom: 10px; box-sizing: border-box; outline: none; transition: 0.3s;}
+        input:focus { border-color: #A39171; }
         
         button.btn-primary { background: #1A1A1A; color: #FFF; border: none; padding: 15px 30px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: background 0.3s; margin-top: 10px;}
         button.btn-primary:hover { background: #A39171; }
-        
-        .privacy-toggle { margin-top: 30px; padding-top: 20px; border-top: 1px dashed #DCDCDC; font-size: 12px; color: #666; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        .toggle-btn { background: transparent; border: 1px solid #A39171; color: #A39171; padding: 8px 15px; font-size: 10px; cursor: pointer; transition: 0.3s;}
-        .toggle-btn:hover { background: rgba(163, 145, 113, 0.1); }
-        
-        .metadata-line { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 14px; color: #8B8B8B; margin-bottom: 20px; border-bottom: 1px solid #F0F0F0; padding-bottom: 10px; display: inline-block; }
 
+        /* UTILIDADES VISUALES */
         .phygital-prompt { margin-top: 40px; padding-top: 20px; border-top: 1px solid #EAEAEA; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #8B8B8B; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
         .icon-pulse { fill: #A39171; animation: pulse 2s infinite; width: 24px; height: 24px; }
         @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
         
         #loader { font-size: 14px; color: #8B8B8B; letter-spacing: 1px; text-transform: uppercase; }
-        
-        /* BOTÓN DE CRECIMIENTO COLOFÓN */
-        .btn-colofon {
-            display: inline-block; margin-top: 25px; padding: 12px 25px;
-            border: 1px solid #A39171; color: #A39171; text-decoration: none;
-            font-size: 11px; text-transform: uppercase; letter-spacing: 2px;
-            border-radius: 4px; transition: all 0.3s;
-        }
-        .btn-colofon:hover { background: #A39171; color: #FFF; }
     </style>
 </head>
 <body>
@@ -96,21 +79,22 @@
     <div class="container">
         <div id="loader">Conectando con el éter...</div>
         
+        <!-- PANTALLA 1: CERROJO -->
         <div id="pin-section">
             <h1>Etéreo</h1>
             <p id="pin-instruction" style="font-size: 13px; color: #666; margin-bottom: 20px;">Introduce el código de esta memoria.</p>
-            <input type="password" id="pin-input" placeholder="PIN de acceso">
+            <input type="password" id="pin-input" placeholder="PIN">
             <br>
             <button class="btn-primary" id="btn-desbloquear">Desvelar</button>
             <p id="error-msg" style="color: #d63031; font-size: 12px; margin-top: 15px;"></p>
         </div>
 
+        <!-- PANTALLA 2: EL CAPÍTULO -->
         <div id="content-section">
             <h1 id="titulo-capitulo"></h1>
-            <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #A39171; margin-top: -5px; margin-bottom: 5px;" id="subtitulo-capitulo"></p>
+            <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #A39171; margin-top: -5px; margin-bottom: 20px;" id="subtitulo-capitulo"></p>
             
-            <div id="metadata-container"></div>
-            
+            <!-- Aquí se inyecta la foto de Cloudinary, el audio, o el iframe de Spotify -->
             <div id="render-area"></div>
 
             <div class="phygital-prompt" id="global-prompt">
@@ -120,11 +104,10 @@
         </div>
     </div>
 
-    <!-- Banda Sonora Global -->
-    <audio id="bg-audio" loop></audio>
-
+    <!-- Firebase App y Firestore -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <!-- Tu Motor Lógico -->
     <script src="app.js"></script>
 </body>
 </html>
